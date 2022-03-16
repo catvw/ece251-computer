@@ -46,7 +46,7 @@ Select      Operation           Description
 --------------------------------------------------------------------------------
 000         D = A + B           Add A and B.
 001         D = A - B           Subtract B from A.
-010         D = A * B           Multiply A and B.
-011         D = A / B           Divide A by B.
+010         D = A & B           Take the bitwise AND of A and B.
+011         D = A / B           Take the bitwsie OR of A and B.
 100         D = A << B          Shift A left by B.
 101         D = A >> B          Shift A right by B.

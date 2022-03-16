@@ -50,3 +50,13 @@ Select      Operation           Description
 011         D = A / B           Take the bitwsie OR of A and B.
 100         D = A << B          Shift A left by B.
 101         D = A >> B          Shift A right by B.
+
+*---------------*
+| Memory Module |
+*---------------*
+
+Addresses consist of 8 bytes (conveniently register-sized), yielding 256 memory
+lines. The memory module has an 8-bit address input, an 8-bit input bus, an
+8-bit output bus, a clock input, and a write-enable select input The module
+will do an operation on every rising edge of the clock, and so the module is
+unclocked when not actively addressing memory.

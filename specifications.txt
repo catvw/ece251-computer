@@ -34,6 +34,12 @@ LD      1110 0RRR       LD [R1]         Load the data at the address contained
 ST      1110 1RRR       ST [R1]         Store the data in the accumulator to the
                                         address contained in register RRR.
 
+*-----------*
+| Registers |
+*-----------*
+
+There are 8 8-bit registers, R0 through R7.
+
 *------------------*
 | ALU Instructions |
 *------------------*
@@ -60,3 +66,11 @@ lines. The memory module has an 8-bit address input, an 8-bit input bus, an
 8-bit output bus, a clock input, and a write-enable select input The module
 will do an operation on every rising edge of the clock, and so the module is
 unclocked when not actively addressing memory.
+
+*---------------*
+| Memory Layout |
+*---------------*
+
+The text segment starts at address 0x0 and grows to greater addresses. The data
+segment (really just a stack, for this simple machine) starts at 0xFF and grows
+to lesser addresses. For now.

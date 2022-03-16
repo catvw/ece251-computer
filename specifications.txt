@@ -1,0 +1,52 @@
+*--------------------*
+| Instruction Format |
+*--------------------*
+
+Instructions are 8 bits long---4 bits for the opcode, 4 bits for other data (e.
+g., addressed registers, constants, etc). The exact instructions are as follows:
+
+Name    Format          Example         Description
+--------------------------------------------------------------------------------
+ADD     0000 0RRR       ADD R1          Add the contents of register RRR to the
+                                        accumulator.
+SUB     0001 0RRR       SUB R3          Subtract the contents of register RRR
+                                        from the accumulator.
+MUL     0010 0RRR       MUL R0          Multiply the accumulator by register
+                                        RRR.
+DIV     0011 0RRR       DIV R2          Divide the accumulator by register RRR.
+LSL     0100 0CCC       LSL #3          Shift the accumulator left by CCC bits.
+LSR     0100 1CCC       LSR #5          Shift the accumulator right by CCC bits.
+
+B       0100 CCCC       B label         Unconditional branch to PC + CCCC.
+BZ      0101 CCCC       BZ label        Branch to PC + CCCC if the accumulator
+                                        is zero.
+BNN     0111 CCCC       BNN label       Branch to PC + CCCC if the accumulator
+                                        is nonnegative.
+
+SET     1100 CCCC       SET #13         Set the lower 4 bits of the accumulator
+                                        to CCCC.
+MOV     1101 DRRR       MOV >R0         If D, move the contents of the
+                                        accumulator into register RRR. Else,
+                                        move the contents of register RRR into
+                                        the accumulator.
+LD      1110 0RRR       LD [R1]         Load the data at the address contained
+                                        in register RRR into the accumulator.
+ST      1110 1RRR       ST [R1]         Store the data in the accumulator to the
+                                        address contained in register RRR.
+
+*------------------*
+| ALU Instructions |
+*------------------*
+
+The ALU has a 3-bit select (S), two 8-bit inputs (A and B), one 8-bit output
+(D), one carry output (C), and one "operation complete" output (F). The
+available functions are as follows:
+
+Select      Operation           Description
+--------------------------------------------------------------------------------
+000         D = A + B           Add A and B.
+001         D = A - B           Subtract B from A.
+010         D = A * B           Multiply A and B.
+011         D = A / B           Divide A by B.
+100         D = A << B          Shift A left by B.
+101         D = A >> B          Shift A right by B.

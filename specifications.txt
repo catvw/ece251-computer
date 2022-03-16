@@ -38,7 +38,11 @@ ST      1110 1RRR       ST [R1]         Store the data in the accumulator to the
 | Registers |
 *-----------*
 
-There are 8 8-bit registers, R0 through R7.
+There are 8 8-bit registers, R0 through R7. Their standard uses are as follows:
+
+Register    Use
+--------------------------------------------------------------------------------
+R7          Used as the program counter.
 
 *------------------*
 | ALU Instructions |

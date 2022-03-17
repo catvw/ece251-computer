@@ -33,6 +33,7 @@ LD      1110 0RRR       LD [R1]         Load the data at the address contained
                                         in register RRR into the accumulator.
 ST      1110 1RRR       ST [R1]         Store the data in the accumulator to the
                                         address contained in register RRR.
+NO      1111 XXXX       NO              No-op.
 
 *-----------*
 | Registers |

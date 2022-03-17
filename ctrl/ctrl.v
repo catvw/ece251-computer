@@ -14,6 +14,10 @@ module ctrl(
 		input[7:0] D,
 		input C,
 
+		// communication with the multiplier
+		output[7:0] mA, mB,
+		input[7:0] P,
+
 		// communication with the address ALU
 		output[7:0] inst_address,
 		output[7:0] inst_offset,
@@ -28,6 +32,9 @@ module ctrl(
 	wire[2:0] S;
 	wire[7:0] D;
 	wire C;
+
+	wire[7:0] mA, mB;
+	wire[7:0] P;
 
 	reg[7:0] address;
 	wire[7:0] from_mem;
@@ -61,6 +68,9 @@ module ctrl(
 	assign B = immediate ? {5'b0, next_instr[2:0]} :
 	                       register_file[next_instr[2:0]];
 	assign S = next_instr[5:3]; // the ALU select bits encoded in ALU insts
+
+	assign mA = accumulator;
+	assign mB = register_file[next_instr[2:0]];
 
 	initial begin
 		mem_clock = 0;
@@ -128,6 +138,12 @@ module ctrl(
 				branch <= ~accumulator[7]; // TODO: use a proper MUX for this
 			end
 
+			4'b1000: begin // MUL
+				$display("  MUL %b", next_instr[3:0]);
+				#1; // let the multiply happen
+				accumulator <= P;
+			end
+
 			4'b1100: begin // SET
 				$display("  SET %b", next_instr[3:0]);
 				accumulator[3:0] <= next_instr[3:0];
@@ -159,7 +175,7 @@ module ctrl(
 		endcase
 
 		#1;
-		$display("  accumulator is %b", accumulator);
+		$display("  accumulator is %b (%d)", accumulator, accumulator);
 
 		#1;
 		register_file[7] = new_inst_address; // TODO: use the ALU for this

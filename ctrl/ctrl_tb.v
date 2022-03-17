@@ -1,6 +1,7 @@
 `timescale 1ms / 1ms  
 `include "../mem/mem.v"
 `include "../alu/alu.v"
+`include "../mult/mult.v"
 
 module ctrl_tb;
 	reg clock;
@@ -19,6 +20,8 @@ module ctrl_tb;
 	wire[2:0] S;
 	wire C;
 
+	wire[7:0] mA, mB, P;
+
 	wire[7:0] inst_address;
 	wire[7:0] inst_offset;
 	wire[7:0] new_inst_address;
@@ -35,12 +38,13 @@ module ctrl_tb;
 	end
 
 	ctrl test_ctrl(clock, ctrl_addr_out, ctrl_from_mem, ctrl_to_mem,
-		ctrl_mem_clock, ctrl_mem_write, A, B, S, D, C, inst_address,
+		ctrl_mem_clock, ctrl_mem_write, A, B, S, D, C, mA, mB, P, inst_address,
 		inst_offset, new_inst_address, inst_op_select);
 	mem test_mem(mem_clock, mem_write, address, to_mem, from_mem);
 	alu general_alu(A, B, S, D, C);
 	alu addr_alu(inst_address, inst_offset, inst_op_select, new_inst_address,
 		inst_carry_out);
+	mult test_mult(mA, mB, P);
 	always #20 clock = !clock;
 
 	integer program_file;

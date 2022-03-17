@@ -23,7 +23,7 @@ NOT     0011 1XXX       NOT             Take the bitwise NOT of the accumulator.
 
 MUL     1000 0RRR       MUL R0          Multiply the accumulator by register
                                         RRR.
-DIV     1000 1RRR       DIV R2          Divide the accumulator by register RRR.
+DIV     1001 0RRR       DIV R2          Divide the accumulator by register RRR.
 
 B       0100 CCCC       B label         Unconditional branch to PC + CCCC (sign-
                                         extended).

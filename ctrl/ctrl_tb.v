@@ -26,7 +26,7 @@ module ctrl_tb;
 	ctrl test_ctrl(clock, ctrl_addr_out, ctrl_from_mem, ctrl_to_mem,
 		ctrl_mem_clock, ctrl_mem_write);
 	mem test_mem(mem_clock, mem_write, address, to_mem, from_mem);
-	always #1 clock = !clock;
+	always #100 clock = !clock;
 
 	integer program_file;
 	reg[7:0] next_instr;
@@ -44,23 +44,12 @@ module ctrl_tb;
 		while ($fread(next_instr, program_file)) begin
 			// cycle the memory clock and move to the next address
 			mem_clock = 1;
-			mem_clock = 0;
-			#1; // print here and finish assignments
+			#1 mem_clock = 0;
 			++next_addr;
 		end
 		deassign to_mem;
 		deassign address;
 		$fclose(program_file);
-
-		$display("(read-back)");
-
-		mem_write = 0;
-		assign next_instr = from_mem;
-		for (address = 0; address < 8'h20; ++address) begin
-			mem_clock = 1;
-			mem_clock = 0;
-			#1; // print here and finish assignments
-		end
 
 		// hook up memory and control
 		assign mem_clock = ctrl_mem_clock;
@@ -70,6 +59,6 @@ module ctrl_tb;
 		assign ctrl_from_mem = from_mem;
 
 		deassign clock; // and we're away!
-		#20 $finish;
+		#2000 $finish;
 	end
 endmodule

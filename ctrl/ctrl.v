@@ -109,6 +109,18 @@ module ctrl(
 				branch <= 1;
 			end
 
+			4'b0101: begin // BZ
+				$display("  BZ %b", next_instr[3:0]);
+				// bring branch line high if accumulator is zero
+				if (accumulator == 0) branch <= 1; // XXX; use ANDs
+			end
+
+			4'b0110: begin // BNN
+				$display("  BNN %b", next_instr[3:0]);
+				// bring branch line high if accumulator is nonnegative
+				branch <= ~accumulator[7]; // TODO: use a proper MUX for this
+			end
+
 			4'b1100: begin // SET
 				$display("  SET %b", next_instr[3:0]);
 				accumulator[3:0] <= next_instr[3:0];

@@ -25,7 +25,7 @@ B       0100 CCCC       B label         Unconditional branch to PC + CCCC (sign-
                                         extended).
 BZ      0101 CCCC       BZ label        Branch to PC + CCCC if the accumulator
                                         is zero.
-BNN     0111 CCCC       BNN label       Branch to PC + CCCC if the accumulator
+BNN     0110 CCCC       BNN label       Branch to PC + CCCC if the accumulator
                                         is nonnegative.
 
 SET     1100 CCCC       SET #13         Set the lower 4 bits of the accumulator

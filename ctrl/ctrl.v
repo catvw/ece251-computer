@@ -25,15 +25,20 @@ module ctrl(
 	reg mem_write;
 
 	wire[7:0] inst_address;
-	reg[7:0] inst_offset;
+	wire[7:0] inst_offset;
 	wire[7:0] new_inst_address;
 	reg[2:0] inst_op_select;
 
 	// internal variables
 	reg[7:0] register_file[7:0];
 	reg[7:0] next_instr;
+	reg branch;
 
 	assign inst_address = register_file[7];
+	
+	assign inst_offset = 
+		branch ? {{4{next_instr[3]}}, next_instr[3:0]} : // sign-extended offset
+		         8'b1; // just move one ahead if not branching
 
 	initial begin
 		mem_clock = 0;
@@ -44,6 +49,9 @@ module ctrl(
 	end
 
 	always @(posedge clock) begin
+		// reset from last cycle
+		branch <= 0;
+
 		// load the next instruction from memory
 		address <= register_file[7];
 		mem_write <= 0;
@@ -57,14 +65,12 @@ module ctrl(
 		case(next_instr[7:4])
 			4'b0100: begin // B
 				$display("branch");
-				// sign-extend offset and prep ALU
-				inst_offset = {{4{next_instr[3]}}, next_instr[3:0]};
-				#1; // operate
-				$display("%d %d", inst_offset, new_inst_address);
-				register_file[7] = new_inst_address; // XXX
+				// bring branch line high to set up instruction ALU
+				branch <= 1;
 			end
 		endcase
 
-		register_file[7] = register_file[7] + 1; // TODO: use the ALU for this
+		#1;
+		register_file[7] = new_inst_address; // TODO: use the ALU for this
 	end
 endmodule

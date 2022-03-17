@@ -9,13 +9,17 @@ Name    Format          Example         Description
 --------------------------------------------------------------------------------
 ADD     0000 0RRR       ADD R1          Add the contents of register RRR to the
                                         accumulator.
-SUB     0001 0RRR       SUB R3          Subtract the contents of register RRR
+SUB     0000 1RRR       SUB R3          Subtract the contents of register RRR
                                         from the accumulator.
-MUL     0010 0RRR       MUL R0          Multiply the accumulator by register
+AND     0001 0RRR       AND R6          Take the logical AND of register RRR and
+                                        the accumulator.
+OR      0001 1RRR       OR  R5          Take the logical OR of register RRR and
+                                        the accumulator.
+LSL     0010 0CCC       LSL #3          Shift the accumulator left by CCC bits.
+LSR     0010 1CCC       LSR #5          Shift the accumulator right by CCC bits.
+MUL     0011 0RRR       MUL R0          Multiply the accumulator by register
                                         RRR.
-DIV     0011 0RRR       DIV R2          Divide the accumulator by register RRR.
-LSL     0100 0CCC       LSL #3          Shift the accumulator left by CCC bits.
-LSR     0100 1CCC       LSR #5          Shift the accumulator right by CCC bits.
+DIV     0011 1RRR       DIV R2          Divide the accumulator by register RRR.
 
 B       0100 CCCC       B label         Unconditional branch to PC + CCCC (sign-
                                         extended).
@@ -59,7 +63,7 @@ Select      Operation           Description
 000         D = A + B           Add A and B.
 001         D = A - B           Subtract B from A.
 010         D = A & B           Take the bitwise AND of A and B.
-011         D = A / B           Take the bitwsie OR of A and B.
+011         D = A | B           Take the bitwsie OR of A and B.
 100         D = A << B          Shift A left by B.
 101         D = A >> B          Shift A right by B.
 

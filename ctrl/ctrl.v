@@ -80,7 +80,7 @@ module ctrl(
 
 		case(next_instr[7:4])
 			4'b0000: begin // ADD/SUB
-				$display("ADD/SUB %b", next_instr[3:0]);
+				$display("  ADD/SUB %b", next_instr[3:0]);
 				A <= accumulator;
 				B <= register_file[next_instr[3:0]];
 				#1; // do the thing
@@ -88,7 +88,7 @@ module ctrl(
 				#1;
 			end
 			4'b0001: begin // AND/OR
-				$display("AND/OR %b", next_instr[3:0]);
+				$display("  AND/OR %b", next_instr[3:0]);
 				A <= accumulator;
 				B <= register_file[next_instr[3:0]];
 				#1; // do the thing
@@ -96,7 +96,7 @@ module ctrl(
 				#1;
 			end
 			4'b0010: begin // LSL/LSR
-				$display("LSL/LSR %b", next_instr[3:0]);
+				$display("  LSL/LSR %b", next_instr[3:0]);
 				A <= accumulator;
 				B <= {5'b0, next_instr[2:0]};
 				#3; // do the thing
@@ -104,18 +104,18 @@ module ctrl(
 			end
 
 			4'b0100: begin // B
-				$display("B %b", next_instr[3:0]);
+				$display("  B %b", next_instr[3:0]);
 				// bring branch line high to set up instruction ALU
 				branch <= 1;
 			end
 
 			4'b1100: begin // SET
-				$display("SET %b", next_instr[3:0]);
+				$display("  SET %b", next_instr[3:0]);
 				accumulator[3:0] <= next_instr[3:0];
 			end
 
 			4'b1101: begin // MOV
-				$display("MOV %b", next_instr[3:0]);
+				$display("  MOV %b", next_instr[3:0]);
 				if (acc_to_reg)
 					register_file[next_instr[2:0]] <= accumulator;
 				else
@@ -124,7 +124,7 @@ module ctrl(
 		endcase
 
 		#1;
-		$display("accumulator is %b", accumulator);
+		$display("  accumulator is %b", accumulator);
 
 		#1;
 		register_file[7] = new_inst_address; // TODO: use the ALU for this

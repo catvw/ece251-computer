@@ -42,8 +42,8 @@ module div(
 		#1 quotient[0] <= remainder_pos;
 		remainder <= remainder_pos ? remainder :
 		                             remainder + divisor;
-		#1 divisor <= divisor >> 1;
-		counter <= counter + 1;
+		divisor <= divisor >> 1;
+		#1 counter <= counter + 1;
 
 		if (counter[3] & ~complete) begin
 			// we're done, copy out everything

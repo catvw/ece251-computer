@@ -35,7 +35,6 @@ module ctrl_tb;
 		assign clock = 0; // hold clock at zero until we're ready
 
 		// read the program into memory
-		$monitor("0x%h: %b (%d)", address, next_instr, next_instr);
 		next_addr = 8'b0;
 		program_file = $fopen("program.bin", "r");
 		mem_write = 1;

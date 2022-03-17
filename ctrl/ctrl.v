@@ -59,7 +59,7 @@ module ctrl(
 
 	assign A = accumulator;
 	assign B = immediate ? {5'b0, next_instr[2:0]} :
-	                       register_file[next_instr[3:0]];
+	                       register_file[next_instr[2:0]];
 	assign S = next_instr[5:3]; // the ALU select bits encoded in ALU insts
 
 	initial begin

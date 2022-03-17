@@ -40,8 +40,8 @@ module div(
 		remainder <= remainder - divisor;
 		quotient <= quotient << 1;
 		#1 quotient[0] <= remainder_pos;
-		#1 remainder <= remainder_pos ? remainder :
-		                                remainder + divisor;
+		remainder <= remainder_pos ? remainder :
+		                             remainder + divisor;
 		#1 divisor <= divisor >> 1;
 		counter <= counter + 1;
 

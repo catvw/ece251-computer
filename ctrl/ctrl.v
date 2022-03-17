@@ -8,6 +8,12 @@ module ctrl(
 		output mem_clock,
 		output mem_write,
 
+		// communication with the general-purpose ALU
+		output[7:0] A, B,
+		output[2:0] S,
+		input[7:0] D,
+		input C,
+
 		// communication with the address ALU
 		output[7:0] inst_address,
 		output[7:0] inst_offset,
@@ -17,6 +23,11 @@ module ctrl(
 
 	// external variables
 	wire clock;
+
+	reg[7:0] A, B;
+	wire[2:0] S;
+	wire[7:0] D;
+	wire C;
 
 	reg[7:0] address;
 	wire[7:0] from_mem;
@@ -43,6 +54,7 @@ module ctrl(
 		         8'b1; // just move one ahead if not branching
 
 	assign acc_to_reg = next_instr[3]; // the D bit for moves
+	assign S = next_instr[5:3]; // the ALU select bits encoded in ALU insts
 
 	initial begin
 		mem_clock = 0;
@@ -67,6 +79,30 @@ module ctrl(
 		mem_clock = 0;
 
 		case(next_instr[7:4])
+			4'b0000: begin // ADD/SUB
+				$display("ADD/SUB %b", next_instr[3:0]);
+				A <= accumulator;
+				B <= register_file[next_instr[3:0]];
+				#1; // do the thing
+				accumulator <= D;
+				#1;
+			end
+			4'b0001: begin // AND/OR
+				$display("AND/OR %b", next_instr[3:0]);
+				A <= accumulator;
+				B <= register_file[next_instr[3:0]];
+				#1; // do the thing
+				accumulator <= D;
+				#1;
+			end
+			4'b0010: begin // LSL/LSR
+				$display("LSL/LSR %b", next_instr[3:0]);
+				A <= accumulator;
+				B <= {5'b0, next_instr[2:0]};
+				#3; // do the thing
+				accumulator <= D;
+			end
+
 			4'b0100: begin // B
 				$display("B %b", next_instr[3:0]);
 				// bring branch line high to set up instruction ALU
@@ -86,6 +122,9 @@ module ctrl(
 					accumulator <= register_file[next_instr[2:0]];
 			end
 		endcase
+
+		#1;
+		$display("accumulator is %b", accumulator);
 
 		#1;
 		register_file[7] = new_inst_address; // TODO: use the ALU for this

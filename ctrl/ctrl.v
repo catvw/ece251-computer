@@ -24,7 +24,7 @@ module ctrl(
 	// external variables
 	wire clock;
 
-	reg[7:0] A, B;
+	wire[7:0] A, B;
 	wire[2:0] S;
 	wire[7:0] D;
 	wire C;
@@ -44,7 +44,9 @@ module ctrl(
 	reg[7:0] accumulator;
 	reg[7:0] register_file[7:0];
 	reg[7:0] next_instr;
+	wire[3:0] inst_arg;
 	reg branch;
+	reg immediate; // used for ALU ops
 	wire acc_to_reg;
 
 	assign inst_address = register_file[7];
@@ -54,6 +56,10 @@ module ctrl(
 		         8'b1; // just move one ahead if not branching
 
 	assign acc_to_reg = next_instr[3]; // the D bit for moves
+
+	assign A = accumulator;
+	assign B = immediate ? {5'b0, next_instr[2:0]} :
+	                       register_file[next_instr[3:0]];
 	assign S = next_instr[5:3]; // the ALU select bits encoded in ALU insts
 
 	initial begin
@@ -81,24 +87,21 @@ module ctrl(
 		case(next_instr[7:4])
 			4'b0000: begin // ADD/SUB
 				$display("  ADD/SUB %b", next_instr[3:0]);
-				A <= accumulator;
-				B <= register_file[next_instr[3:0]];
+				immediate = 0;
 				#1; // do the thing
 				accumulator <= D;
 				#1;
 			end
 			4'b0001: begin // AND/OR
 				$display("  AND/OR %b", next_instr[3:0]);
-				A <= accumulator;
-				B <= register_file[next_instr[3:0]];
+				immediate = 0;
 				#1; // do the thing
 				accumulator <= D;
 				#1;
 			end
 			4'b0010: begin // LSL/LSR
 				$display("  LSL/LSR %b", next_instr[3:0]);
-				A <= accumulator;
-				B <= {5'b0, next_instr[2:0]};
+				immediate = 1;
 				#3; // do the thing
 				accumulator <= D;
 			end

@@ -90,19 +90,17 @@ module ctrl(
 				immediate = 0;
 				#1; // do the thing
 				accumulator <= D;
-				#1;
 			end
 			4'b0001: begin // AND/OR
 				$display("  AND/OR %b", next_instr[3:0]);
 				immediate = 0;
 				#1; // do the thing
 				accumulator <= D;
-				#1;
 			end
 			4'b0010: begin // LSL/LSR
 				$display("  LSL/LSR %b", next_instr[3:0]);
 				immediate = 1;
-				#3; // do the thing
+				#1; // do the thing
 				accumulator <= D;
 			end
 

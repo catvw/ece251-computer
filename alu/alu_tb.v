@@ -20,8 +20,8 @@ module alu_tb;
 
 	alu test_alu(A, B, S, D, C);
 	initial begin
-		A = 8'h02;
-		B = 8'h01;
+		A = 8'h03;
+		B = 8'h06;
 		S = 3'h0;
 
 		for (integer i = 0; i <= 6; ++i) begin

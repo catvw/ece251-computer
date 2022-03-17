@@ -30,6 +30,7 @@ module ctrl(
 	reg[2:0] inst_op_select;
 
 	// internal variables
+	reg[7:0] accumulator;
 	reg[7:0] register_file[7:0];
 	reg[7:0] next_instr;
 	reg branch;
@@ -64,9 +65,14 @@ module ctrl(
 
 		case(next_instr[7:4])
 			4'b0100: begin // B
-				$display("branch");
+				$display("B %b", next_instr[3:0]);
 				// bring branch line high to set up instruction ALU
 				branch <= 1;
+			end
+
+			4'b1100: begin // SET
+				$display("SET %b", next_instr[3:0]);
+				accumulator[3:0] <= next_instr[3:0];
 			end
 		endcase
 

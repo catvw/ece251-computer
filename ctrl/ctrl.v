@@ -55,7 +55,7 @@ module ctrl(
 		branch ? {{4{next_instr[3]}}, next_instr[3:0]} : // sign-extended offset
 		         8'b1; // just move one ahead if not branching
 
-	assign acc_to_reg = next_instr[3]; // the D bit for moves
+	assign acc_to_mem = next_instr[3]; // the D bit for moves & LD/ST
 
 	assign A = accumulator;
 	assign B = immediate ? {5'b0, next_instr[2:0]} :
@@ -135,10 +135,26 @@ module ctrl(
 
 			4'b1101: begin // MOV
 				$display("  MOV %b", next_instr[3:0]);
-				if (acc_to_reg)
+				if (acc_to_mem)
 					register_file[next_instr[2:0]] <= accumulator;
 				else
 					accumulator <= register_file[next_instr[2:0]];
+			end
+
+			4'b1110: begin // LD/ST
+				$display("  LD/ST %b", next_instr[3:0]);
+				address <= register_file[next_instr[2:0]];
+				if (acc_to_mem) begin
+					mem_write = 1;
+					to_mem <= accumulator;
+					#1 mem_clock = 1;
+					#1 mem_clock = 0;
+				end else begin
+					mem_write = 0;
+					#1 mem_clock = 1;
+					#1 mem_clock = 0;
+					accumulator <= from_mem;
+				end
 			end
 		endcase
 

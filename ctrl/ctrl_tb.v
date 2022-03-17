@@ -73,6 +73,6 @@ module ctrl_tb;
 		assign ctrl_from_mem = from_mem;
 
 		deassign clock; // and we're away!
-		#800 $finish;
+		#1000 $finish;
 	end
 endmodule

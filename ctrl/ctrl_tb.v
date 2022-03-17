@@ -26,7 +26,7 @@ module ctrl_tb;
 	ctrl test_ctrl(clock, ctrl_addr_out, ctrl_from_mem, ctrl_to_mem,
 		ctrl_mem_clock, ctrl_mem_write);
 	mem test_mem(mem_clock, mem_write, address, to_mem, from_mem);
-	always #100 clock = !clock;
+	always #20 clock = !clock;
 
 	integer program_file;
 	reg[7:0] next_instr;

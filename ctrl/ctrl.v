@@ -34,12 +34,15 @@ module ctrl(
 	reg[7:0] register_file[7:0];
 	reg[7:0] next_instr;
 	reg branch;
+	wire acc_to_reg;
 
 	assign inst_address = register_file[7];
 	
 	assign inst_offset = 
 		branch ? {{4{next_instr[3]}}, next_instr[3:0]} : // sign-extended offset
 		         8'b1; // just move one ahead if not branching
+
+	assign acc_to_reg = next_instr[3]; // the D bit for moves
 
 	initial begin
 		mem_clock = 0;
@@ -73,6 +76,14 @@ module ctrl(
 			4'b1100: begin // SET
 				$display("SET %b", next_instr[3:0]);
 				accumulator[3:0] <= next_instr[3:0];
+			end
+
+			4'b1101: begin // MOV
+				$display("MOV %b", next_instr[3:0]);
+				if (acc_to_reg)
+					register_file[next_instr[2:0]] <= accumulator;
+				else
+					accumulator <= register_file[next_instr[2:0]];
 			end
 		endcase
 

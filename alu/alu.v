@@ -23,6 +23,10 @@ module alu(
 				intermediate = A << B;
 			3'b101:
 				intermediate = A >> B;
+			3'b110:
+				intermediate = A ^ B;
+			3'b111:
+				intermediate = ~A;
 		endcase
 	end
 endmodule

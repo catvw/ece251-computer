@@ -103,6 +103,12 @@ module ctrl(
 				#1; // do the thing
 				accumulator <= D;
 			end
+			4'b0011: begin // XOR/NOT
+				$display("  XOR/NOT %b", next_instr[3:0]);
+				immediate = 0;
+				#1; // do the thing
+				accumulator <= D;
+			end
 
 			4'b0100: begin // B
 				$display("  B %b", next_instr[3:0]);

@@ -29,6 +29,6 @@ module div_tb;
 		#1 A = A - 1;
 		#1 start = 1;
 
-		if (A == 13) $finish;
+		if (A == 10) $finish;
 	end
 endmodule

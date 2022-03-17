@@ -37,8 +37,8 @@ module div(
 
 	// all done according to the division algorithm in Comp Org & Design
 	always @(posedge clock) begin
-		#1 remainder <= remainder - divisor;
-		#1 quotient <= quotient << 1;
+		remainder <= remainder - divisor;
+		quotient <= quotient << 1;
 		#1 quotient[0] <= remainder_pos;
 		#1 remainder <= remainder_pos ? remainder :
 		                                remainder + divisor;

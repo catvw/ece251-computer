@@ -44,7 +44,7 @@ module ctrl_tb;
 			// cycle the memory clock and move to the next address
 			mem_clock = 1;
 			#1 mem_clock = 0;
-			++next_addr;
+			#1 ++next_addr;
 		end
 		deassign to_mem;
 		deassign address;

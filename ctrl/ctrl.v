@@ -23,17 +23,19 @@ module ctrl(
 	reg[7:0] next_instr;
 
 	initial begin
+		mem_clock = 0;
+		mem_write = 0;
 		register_file[7] = 8'b0;
-		$monitor("0x%h: %b (%d)", register_file[7], next_instr, next_instr);
+		//$monitor("0x%h: %b (%d)", register_file[7], next_instr, next_instr);
 	end
 
 	always @(posedge clock) begin
 		address = register_file[7];
 		mem_write = 0;
 		mem_clock = 1;
-		next_instr = from_mem;
 		#1;
-		$display("%d", next_instr);
+		next_instr = from_mem;
+		$display("0x%h: %d", address, next_instr);
 		mem_clock = 0;
 
 		register_file[7] = register_file[7] + 1; // TODO: use the ALU for this

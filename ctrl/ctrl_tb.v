@@ -2,6 +2,7 @@
 `include "../mem/mem.v"
 `include "../alu/alu.v"
 `include "../mult/mult.v"
+`include "../div/div.v"
 
 module ctrl_tb;
 	reg clock;
@@ -22,6 +23,9 @@ module ctrl_tb;
 
 	wire[7:0] mA, mB, P;
 
+	wire[7:0] dA, dB, Q;
+	wire div_clock, div_start, div_complete;
+
 	wire[7:0] inst_address;
 	wire[7:0] inst_offset;
 	wire[7:0] new_inst_address;
@@ -37,14 +41,19 @@ module ctrl_tb;
 //		$monitor("#%4d: %b", $time, clock);
 	end
 
-	ctrl test_ctrl(clock, ctrl_addr_out, ctrl_from_mem, ctrl_to_mem,
-		ctrl_mem_clock, ctrl_mem_write, A, B, S, D, C, mA, mB, P, inst_address,
-		inst_offset, new_inst_address, inst_op_select);
+	ctrl test_ctrl(clock,
+		ctrl_addr_out, ctrl_from_mem, ctrl_to_mem, ctrl_mem_clock,
+			ctrl_mem_write,
+		A, B, S, D, C,
+		mA, mB, P,
+		dA, dB, div_clock, div_start, Q, div_complete,
+		inst_address, inst_offset, new_inst_address, inst_op_select);
 	mem test_mem(mem_clock, mem_write, address, to_mem, from_mem);
 	alu general_alu(A, B, S, D, C);
 	alu addr_alu(inst_address, inst_offset, inst_op_select, new_inst_address,
 		inst_carry_out);
 	mult test_mult(mA, mB, P);
+	div test_div(dA, dB, div_clock, div_start, Q, div_complete);
 	always #20 clock = !clock;
 
 	integer program_file;
@@ -77,6 +86,6 @@ module ctrl_tb;
 		assign ctrl_from_mem = from_mem;
 
 		deassign clock; // and we're away!
-		#1000 $finish;
+		#1800 $finish;
 	end
 endmodule

@@ -18,6 +18,13 @@ module ctrl(
 		output[7:0] mA, mB,
 		input[7:0] P,
 
+		// communication with the divider
+		output[7:0] dA, dB,
+		output div_clock,
+		output div_start,
+		input[7:0] Q,
+		input div_complete,
+
 		// communication with the address ALU
 		output[7:0] inst_address,
 		output[7:0] inst_offset,
@@ -33,8 +40,12 @@ module ctrl(
 	wire[7:0] D;
 	wire C;
 
-	wire[7:0] mA, mB;
-	wire[7:0] P;
+	wire[7:0] mA, mB, P;
+
+	wire[7:0] dA, dB, Q;
+	wire div_clock;
+	reg div_start;
+	wire div_complete;
 
 	reg[7:0] address;
 	wire[7:0] from_mem;
@@ -55,11 +66,14 @@ module ctrl(
 	reg branch;
 	reg immediate; // used for ALU ops
 	wire acc_to_reg;
+	reg div_active;
+	wire multi_cycle; // used for multi-cycle instructions (like DIV)
 
 	assign inst_address = register_file[7];
 	
 	assign inst_offset = 
 		branch ? {{4{next_instr[3]}}, next_instr[3:0]} : // sign-extended offset
+		multi_cycle ? 8'b0 : // don't move at all if still working
 		         8'b1; // just move one ahead if not branching
 
 	assign acc_to_mem = next_instr[3]; // the D bit for moves & LD/ST
@@ -72,11 +86,18 @@ module ctrl(
 	assign mA = accumulator;
 	assign mB = register_file[next_instr[2:0]];
 
+	assign dA = accumulator;
+	assign dB = register_file[next_instr[2:0]];
+	assign div_clock = ~clock & div_active;
+
+	assign multi_cycle = div_active;
+
 	initial begin
 		mem_clock = 0;
 		mem_write = 0;
 		register_file[7] = 8'b0;
 		inst_op_select = 3'b0; // always add
+		div_active = 0;
 		//$monitor("0x%h: %b (%d)", register_file[7], next_instr, next_instr);
 	end
 
@@ -84,7 +105,8 @@ module ctrl(
 		// reset from last cycle
 		branch <= 0;
 
-		// load the next instruction from memory
+		// load the next instruction from memory if we're not still working on
+		// the last one
 		address <= register_file[7];
 		mem_write <= 0;
 		mem_clock <= 1;
@@ -142,6 +164,20 @@ module ctrl(
 				$display("  MUL %b", next_instr[3:0]);
 				#1; // let the multiply happen
 				accumulator <= P;
+			end
+
+			4'b1001: begin // DIV
+				$display("  DIV %b", next_instr[3:0]);
+				div_start <= ~div_active; // start if we haven't yet
+				// stay active until we finish the divide
+				div_active <= ~div_active ? 1'b1 :
+				                            ~div_complete;
+
+				#4; // finish resolving this cycle
+				if (div_complete) begin
+					accumulator <= Q;
+					$display("  complete");
+				end
 			end
 
 			4'b1100: begin // SET

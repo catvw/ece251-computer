@@ -38,21 +38,18 @@ module div(
 	// all done according to the division algorithm in Comp Org & Design
 	always @(posedge clock) begin
 		#1 remainder <= remainder - divisor;
-		//#1 $display(" 1 r %b | d %b | q %b", remainder, divisor, quotient);
 		#1 quotient <= quotient << 1;
 		#1 quotient[0] <= remainder_pos;
 		#1 remainder <= remainder_pos ? remainder :
 		                                remainder + divisor;
 		#1 divisor <= divisor >> 1;
-		#1 ++counter;
+		counter <= counter + 1;
 
-		#1;
-		if (counter[3] & counter[0] & ~complete) begin
+		if (counter[3] & ~complete) begin
 			// we're done, copy out everything
 			complete <= 1;
 			Q <= quotient;
 		end
-		//#1 $display(" 2 r %b | d %b | q %b", remainder, divisor, quotient);
 	end
 
 endmodule

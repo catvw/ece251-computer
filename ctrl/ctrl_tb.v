@@ -1,5 +1,6 @@
 `timescale 1ms / 1ms  
 `include "../mem/mem.v"
+`include "../alu/alu.v"
 
 module ctrl_tb;
 	reg clock;
@@ -14,6 +15,12 @@ module ctrl_tb;
 	wire ctrl_mem_clock;
 	wire ctrl_mem_write;
 
+	wire[7:0] inst_address;
+	wire[7:0] inst_offset;
+	wire[7:0] new_inst_address;
+	wire[2:0] inst_op_select;
+	wire inst_carry_out;
+
 	initial begin
 //		$dumpfile("test.vcd");
 //		$dumpvars(0, clock, write, address, to_mem, from_mem);
@@ -24,8 +31,11 @@ module ctrl_tb;
 	end
 
 	ctrl test_ctrl(clock, ctrl_addr_out, ctrl_from_mem, ctrl_to_mem,
-		ctrl_mem_clock, ctrl_mem_write);
+		ctrl_mem_clock, ctrl_mem_write, inst_address, inst_offset,
+		new_inst_address, inst_op_select);
 	mem test_mem(mem_clock, mem_write, address, to_mem, from_mem);
+	alu addr_alu(inst_address, inst_offset, inst_op_select, new_inst_address,
+		inst_carry_out);
 	always #20 clock = !clock;
 
 	integer program_file;

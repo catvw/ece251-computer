@@ -21,9 +21,12 @@ XOR     0011 0RRR       XOR R3          Take the bitwise XOR of register RRR and
                                         the accumulator.
 NOT     0011 1XXX       NOT             Take the bitwise NOT of the accumulator.
 
-MUL     1000 0RRR       MUL R0          Multiply the accumulator by register
+MUL     1000 XRRR       MUL R0          Multiply the accumulator by register
                                         RRR.
-DIV     1001 0RRR       DIV R2          Divide the accumulator by register RRR.
+DIV     1001 XRRR       DIV R2          Divide the accumulator by register RRR.
+
+HLT     1010 XXXX       HLT             Halts the processor (really just calls
+                                        $finish).
 
 B       0100 CCCC       B label         Unconditional branch to PC + CCCC (sign-
                                         extended).
@@ -43,6 +46,9 @@ LD      1110 0RRR       LD [R1]         Load the data at the address contained
 ST      1110 1RRR       ST [R1]         Store the data in the accumulator to the
                                         address contained in register RRR.
 NO      1111 XXXX       NO              No-op.
+
+Any code not listed above is considered an illegal instruction and  is
+equivalent to HLT.
 
 *-----------*
 | Registers |

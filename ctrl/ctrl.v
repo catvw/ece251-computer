@@ -180,6 +180,11 @@ module ctrl(
 				end
 			end
 
+			4'b1010: begin // HLT
+				$display("  HLT");
+				$finish;
+			end
+
 			4'b1100: begin // SET
 				$display("  SET %b", next_instr[3:0]);
 				accumulator[3:0] <= next_instr[3:0];
@@ -207,6 +212,15 @@ module ctrl(
 					#1 mem_clock = 0;
 					accumulator <= from_mem;
 				end
+			end
+
+			4'b1111: begin // NO
+				$display("  NO");
+			end
+
+			default: begin // just in case
+				$display("illegal instruction");
+				$finish;
 			end
 		endcase
 

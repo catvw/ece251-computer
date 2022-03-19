@@ -68,6 +68,7 @@ module ctrl(
 	wire acc_to_reg;
 	reg div_active;
 	wire multi_cycle; // used for multi-cycle instructions (like DIV)
+	reg clock_half; // which half of the double-cycle we're in
 
 	assign inst_address = register_file[7];
 	
@@ -98,136 +99,209 @@ module ctrl(
 		register_file[7] = 8'b0;
 		inst_op_select = 3'b0; // always add
 		div_active = 0;
+		clock_half = 0;
 		//$monitor("0x%h: %b (%d)", register_file[7], next_instr, next_instr);
 	end
 
 	always @(posedge clock) begin
 		// reset from last cycle
 		branch <= 0;
+		mem_clock <= 1;
 
 		// load the next instruction from memory if we're not still working on
 		// the last one
-		address <= register_file[7];
-		mem_write <= 0;
-		mem_clock <= 1;
-		#1;
-		next_instr <= from_mem;
-		#1;
-		$display("0x%h: %d (%b)", address, next_instr, next_instr);
-		mem_clock = 0;
+		if (clock_half == 0) begin
+			address <= register_file[7];
+			mem_write <= 0;
+			$display("load set-up");
+		end else begin
+			$display("+0x%h: %d (%b)", address, next_instr, next_instr);
 
-		case(next_instr[7:4])
-			4'b0000: begin // ADD/SUB
-				$display("  ADD/SUB %b", next_instr[3:0]);
-				immediate = 0;
-				#1; // do the thing
-				accumulator <= D;
-			end
-			4'b0001: begin // AND/OR
-				$display("  AND/OR %b", next_instr[3:0]);
-				immediate = 0;
-				#1; // do the thing
-				accumulator <= D;
-			end
-			4'b0010: begin // LSL/LSR
-				$display("  LSL/LSR %b", next_instr[3:0]);
-				immediate = 1;
-				#1; // do the thing
-				accumulator <= D;
-			end
-			4'b0011: begin // XOR/NOT
-				$display("  XOR/NOT %b", next_instr[3:0]);
-				immediate = 0;
-				#1; // do the thing
-				accumulator <= D;
-			end
-
-			4'b0100: begin // B
-				$display("  B %b", next_instr[3:0]);
-				// bring branch line high to set up instruction ALU
-				branch <= 1;
-			end
-
-			4'b0101: begin // BZ
-				$display("  BZ %b", next_instr[3:0]);
-				// bring branch line high if accumulator is zero
-				if (accumulator == 0) branch <= 1; // XXX; use ANDs
-			end
-
-			4'b0110: begin // BNN
-				$display("  BNN %b", next_instr[3:0]);
-				// bring branch line high if accumulator is nonnegative
-				branch <= ~accumulator[7]; // TODO: use a proper MUX for this
-			end
-
-			4'b1000: begin // MUL
-				$display("  MUL %b", next_instr[3:0]);
-				#1; // let the multiply happen
-				accumulator <= P;
-			end
-
-			4'b1001: begin // DIV
-				$display("  DIV %b", next_instr[3:0]);
-				div_start <= ~div_active; // start if we haven't yet
-				// stay active until we finish the divide
-				div_active <= ~div_active ? 1'b1 :
-				                            ~div_complete;
-
-				#4; // finish resolving this cycle
-				if (div_complete) begin
-					accumulator <= Q;
-					$display("  complete");
+			case(next_instr[7:4])
+				4'b0000: begin // ADD/SUB
+					$display("  +ADD/SUB %b", next_instr[3:0]);
+					immediate = 0;
 				end
-			end
-
-			4'b1010: begin // HLT
-				$display("  HLT");
-				$finish;
-			end
-
-			4'b1100: begin // SET
-				$display("  SET %b", next_instr[3:0]);
-				accumulator[3:0] <= next_instr[3:0];
-			end
-
-			4'b1101: begin // MOV
-				$display("  MOV %b", next_instr[3:0]);
-				if (acc_to_mem)
-					register_file[next_instr[2:0]] <= accumulator;
-				else
-					accumulator <= register_file[next_instr[2:0]];
-			end
-
-			4'b1110: begin // LD/ST
-				$display("  LD/ST %b", next_instr[3:0]);
-				address <= register_file[next_instr[2:0]];
-				if (acc_to_mem) begin
-					mem_write = 1;
-					to_mem <= accumulator;
-					#1 mem_clock = 1;
-					#1 mem_clock = 0;
-				end else begin
-					mem_write = 0;
-					#1 mem_clock = 1;
-					#1 mem_clock = 0;
-					accumulator <= from_mem;
+				4'b0001: begin // AND/OR
+					$display("  +AND/OR %b", next_instr[3:0]);
+					immediate = 0;
 				end
-			end
+				4'b0010: begin // LSL/LSR
+					$display("  +LSL/LSR %b", next_instr[3:0]);
+					immediate = 1;
+				end
+				4'b0011: begin // XOR/NOT
+					$display("  +XOR/NOT %b", next_instr[3:0]);
+					immediate = 0;
+				end
 
-			4'b1111: begin // NO
-				$display("  NO");
-			end
+				4'b0100: begin // B
+					$display("  B %b", next_instr[3:0]);
+					// bring branch line high to set up instruction ALU
+					branch <= 1;
+				end
 
-			default: begin // just in case
-				$display("illegal instruction");
-				$finish;
-			end
-		endcase
+				4'b0101: begin // BZ
+					$display("  BZ %b", next_instr[3:0]);
+					// bring branch line high if accumulator is zero
+					if (accumulator == 0) branch <= 1; // XXX; use ANDs
+				end
 
-		#1;
-		$display("  accumulator is %b (%d)", accumulator, accumulator);
+				4'b0110: begin // BNN
+					$display("  BNN %b", next_instr[3:0]);
+					// bring branch line high if accumulator is nonnegative
+					branch <= ~accumulator[7]; // TODO: use a proper MUX for this
+				end
 
-		#1;
-		register_file[7] = new_inst_address; // TODO: use the ALU for this
+				4'b1000: begin // MUL
+					$display("  MUL %b", next_instr[3:0]);
+					#1; // let the multiply happen
+					accumulator <= P;
+				end
+
+				4'b1001: begin // DIV
+					$display("  DIV %b", next_instr[3:0]);
+					div_start <= ~div_active; // start if we haven't yet
+					// stay active until we finish the divide
+					div_active <= ~div_active ? 1'b1 :
+				                            	~div_complete;
+
+					#4; // finish resolving this cycle
+					if (div_complete) begin
+						accumulator <= Q;
+						$display("  complete");
+					end
+				end
+
+				4'b1010: begin // HLT
+					$display("  HLT");
+					$finish;
+				end
+
+				4'b1100: begin // SET
+					$display("  +SET %b", next_instr[3:0]);
+				end
+
+				4'b1101: begin // MOV
+					$display("  MOV %b", next_instr[3:0]);
+					if (acc_to_mem)
+						register_file[next_instr[2:0]] <= accumulator;
+					else
+						accumulator <= register_file[next_instr[2:0]];
+				end
+
+				4'b1110: begin // LD/ST
+					$display("  LD/ST %b", next_instr[3:0]);
+					address <= register_file[next_instr[2:0]];
+					if (acc_to_mem) begin
+						mem_write = 1;
+						to_mem <= accumulator;
+						#1 mem_clock = 1;
+						#1 mem_clock = 0;
+					end else begin
+						mem_write = 0;
+						#1 mem_clock = 1;
+						#1 mem_clock = 0;
+						accumulator <= from_mem;
+					end
+				end
+
+				4'b1111: begin // NO
+					$display("  NO");
+				end
+
+				default: begin // just in case
+					$display("illegal instruction");
+					$finish;
+				end
+			endcase
+
+			#1;
+			$display("  accumulator is %b (%d)", accumulator, accumulator);
+
+			#1;
+			register_file[7] = new_inst_address; // TODO: use the ALU for this
+		end
+	end
+
+	always @(negedge clock) begin
+		// swap which half we're in
+		clock_half <= ~clock_half;
+		mem_clock <= 0;
+
+		if (clock_half == 0) begin
+			$display("load instruction");
+			next_instr <= from_mem;
+		end else begin
+			$display("-0x%h: %d (%b)", address, next_instr, next_instr);
+			case(next_instr[7:4])
+				4'b0000: begin // ADD/SUB
+					$display("  -ADD/SUB %b", next_instr[3:0]);
+					accumulator <= D;
+				end
+				4'b0001: begin // AND/OR
+					$display("  -AND/OR %b", next_instr[3:0]);
+					accumulator <= D;
+				end
+				4'b0010: begin // LSL/LSR
+					$display("  -LSL/LSR %b", next_instr[3:0]);
+					accumulator <= D;
+				end
+				4'b0011: begin // XOR/NOT
+					$display("  -XOR/NOT %b", next_instr[3:0]);
+					accumulator <= D;
+				end
+
+				4'b0100: begin // B
+					$display("  B %b", next_instr[3:0]);
+				end
+
+				4'b0101: begin // BZ
+					$display("  BZ %b", next_instr[3:0]);
+				end
+
+				4'b0110: begin // BNN
+					$display("  BNN %b", next_instr[3:0]);
+				end
+
+				4'b1000: begin // MUL
+					$display("  MUL %b", next_instr[3:0]);
+					accumulator <= P;
+				end
+
+				4'b1001: begin // DIV
+					$display("  DIV %b", next_instr[3:0]);
+				end
+
+				4'b1010: begin // HLT
+					$display("  HLT");
+				end
+
+				4'b1100: begin // SET
+					$display("  -SET %b", next_instr[3:0]);
+					accumulator[3:0] <= next_instr[3:0];
+				end
+
+				4'b1101: begin // MOV
+					$display("  MOV %b", next_instr[3:0]);
+				end
+
+				4'b1110: begin // LD/ST
+					$display("  LD/ST %b", next_instr[3:0]);
+				end
+
+				4'b1111: begin // NO
+					$display("  NO");
+				end
+
+				default: begin // just in case
+					$display("illegal instruction");
+					$finish;
+				end
+			endcase
+
+			#1;
+			$display("  accumulator is %b (%d)", accumulator, accumulator);
+		end
 	end
 endmodule

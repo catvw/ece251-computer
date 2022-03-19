@@ -60,7 +60,7 @@ module ctrl_tb;
 	reg[7:0] next_instr;
 	reg[7:0] next_addr;
 	initial begin
-		assign clock = 0; // hold clock at zero until we're ready
+		assign clock = 1; // hold clock at one until we're ready
 
 		// read the program into memory
 		next_addr = 8'b0;
@@ -85,7 +85,8 @@ module ctrl_tb;
 		assign to_mem = ctrl_to_mem;
 		assign ctrl_from_mem = from_mem;
 
-		deassign clock; // and we're away!
+		// and we're away!
+		deassign clock;
 		//#1800 $finish;
 	end
 endmodule

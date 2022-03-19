@@ -50,7 +50,7 @@ ST      1110 1RRR       ST [R1]         Store the data in the accumulator to
                                         the address contained in register RRR.
 NO      1111 XXXX       NO              No-op.
 
-Any code not listed above is considered an illegal instruction and  is
+Any code not listed above is considered an illegal instruction and is
 equivalent to HLT.
 
 *-----------*

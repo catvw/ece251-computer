@@ -106,13 +106,13 @@ module ctrl(
 	always @(posedge clock) begin
 		// reset from last cycle
 		branch <= 0;
+		mem_write <= 0;
 		mem_clock <= 1;
 
 		// load the next instruction from memory if we're not still working on
 		// the last one
 		if (clock_half == 0) begin
 			address <= register_file[7];
-			mem_write <= 0;
 			$display("load set-up");
 		end else begin
 			$display("+0x%h: %d (%b)", address, next_instr, next_instr);

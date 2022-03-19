@@ -3,23 +3,26 @@
 *--------------------*
 
 Instructions are 8 bits long---4 bits for the opcode, 4 bits for other data (e.
-g., addressed registers, constants, etc). The exact instructions are as follows:
+g., addressed registers, constants, etc). The exact instructions are as
+follows:
 
 Name    Format          Example         Description
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 ADD     0000 0RRR       ADD R1          Add the contents of register RRR to the
                                         accumulator.
 SUB     0000 1RRR       SUB R3          Subtract the contents of register RRR
                                         from the accumulator.
-AND     0001 0RRR       AND R6          Take the bitwise AND of register RRR and
-                                        the accumulator.
+AND     0001 0RRR       AND R6          Take the bitwise AND of register RRR
+                                        and the accumulator.
 OR      0001 1RRR       OR  R5          Take the bitwise OR of register RRR and
                                         the accumulator.
 LSL     0010 0CCC       LSL #3          Shift the accumulator left by CCC bits.
-LSR     0010 1CCC       LSR #5          Shift the accumulator right by CCC bits.
-XOR     0011 0RRR       XOR R3          Take the bitwise XOR of register RRR and
-                                        the accumulator.
-NOT     0011 1XXX       NOT             Take the bitwise NOT of the accumulator.
+LSR     0010 1CCC       LSR #5          Shift the accumulator right by CCC
+                                        bits.
+XOR     0011 0RRR       XOR R3          Take the bitwise XOR of register RRR
+                                        and the accumulator.
+NOT     0011 1XXX       NOT             Take the bitwise NOT of the
+                                        accumulator.
 
 MUL     1000 XRRR       MUL R0          Multiply the accumulator by register
                                         RRR.
@@ -28,8 +31,8 @@ DIV     1001 XRRR       DIV R2          Divide the accumulator by register RRR.
 HLT     1010 XXXX       HLT             Halts the processor (really just calls
                                         $finish).
 
-B       0100 CCCC       B label         Unconditional branch to PC + CCCC (sign-
-                                        extended).
+B       0100 CCCC       B label         Unconditional branch to PC + CCCC
+                                        (sign-extended).
 BZ      0101 CCCC       BZ label        Branch to PC + CCCC if the accumulator
                                         is zero.
 BNN     0110 CCCC       BNN label       Branch to PC + CCCC if the accumulator
@@ -43,8 +46,8 @@ MOV     1101 DRRR       MOV >R0         If D, move the contents of the
                                         the accumulator.
 LD      1110 0RRR       LD [R1]         Load the data at the address contained
                                         in register RRR into the accumulator.
-ST      1110 1RRR       ST [R1]         Store the data in the accumulator to the
-                                        address contained in register RRR.
+ST      1110 1RRR       ST [R1]         Store the data in the accumulator to
+                                        the address contained in register RRR.
 NO      1111 XXXX       NO              No-op.
 
 Any code not listed above is considered an illegal instruction and  is
@@ -57,7 +60,7 @@ equivalent to HLT.
 There are 8 8-bit registers, R0 through R7. Their standard uses are as follows:
 
 Register    Use
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 R7          Used as the program counter.
 
 *------------------*
@@ -69,7 +72,7 @@ The ALU has a 3-bit select (S), two 8-bit inputs (A and B), one 8-bit output
 available functions are as follows:
 
 Select      Operation           Description
---------------------------------------------------------------------------------
+-------------------------------------------------------------------------------
 000         D = A + B           Add A and B.
 001         D = A - B           Subtract B from A.
 010         D = A & B           Take the bitwise AND of A and B.

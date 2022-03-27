@@ -73,9 +73,9 @@ sign-extended to allow branching backwards.
 | Name | Format | Example | Description |
 | --- | --- | --- | --- |
 | (general) | `01 SS CCCC` | (see below) | Perform branch type `SS` to `R7 + CCCC`. |
-| `B` | `01 00 CCCC` | (see below) | Unconditionally branch to `R7 + CCCC`. |
-| `BZ` | `01 01 CCCC` | (see below) | Branch to `R7 + CCCC` if the accumulator is zero. |
-| `BNN` | `01 10 CCCC` | (see below) | Branch to `R7 + CCCC` if the accumulator is nonnegative. |
+| `B` | `01 00 CCCC` | `B label` | Unconditionally branch to `R7 + CCCC`. |
+| `BZ` | `01 01 CCCC` | `BZ label` | Branch to `R7 + CCCC` if the accumulator is zero. |
+| `BNN` | `01 10 CCCC` | `BNN label` | Branch to `R7 + CCCC` if the accumulator is nonnegative. |
 
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®

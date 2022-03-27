@@ -28,8 +28,7 @@ division are not ALU operations.
 
 | Name | Format | Example | Description |
 | --- | --- | --- | --- |
-| (general) | `00 SSS RRR/III` | (see below) | Perform ALU operation SSS on register
-`RRR`/immediate `III` and the accumulator. |
+| (general) | `00 SSS RRR/III` | (see below) | Perform ALU operation SSS on register `RRR`/immediate `III` and the accumulator. |
 | `ADD` | `00 000 RRR` | `ADD R1` | Add register `RRR` to the accumulator. |
 | `SUB` | `00 001 RRR` | `SUB R3` | Subtract register `RRR` from the accumulator. |
 | `AND` | `00 010 RRR` | `AND R6` | Bitwise-AND the accumulator with register `RRR`. |

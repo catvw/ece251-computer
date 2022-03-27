@@ -1,3 +1,6 @@
+`ifndef EIGHT_ADDER
+`define EIGHT_ADDER
+
 `include "../full_adder/full_adder.v"
 
 module eight_adder(
@@ -18,3 +21,5 @@ module eight_adder(
 	full_adder a6(A[6], B[6], carry[5], S[6], carry[6]);
 	full_adder a7(A[7], B[7], carry[6], S[7], Cout);
 endmodule
+
+`endif

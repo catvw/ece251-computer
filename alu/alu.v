@@ -1,3 +1,6 @@
+`ifndef ALU
+`define ALU
+
 `include "../eight_adder/eight_adder.v"
 
 module alu(
@@ -40,3 +43,5 @@ module alu(
 		endcase
 	end
 endmodule
+
+`endif

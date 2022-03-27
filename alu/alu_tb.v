@@ -13,8 +13,8 @@ module alu_tb;
 	initial begin
 		$dumpfile("test.vcd");
 		$dumpvars(0, A, B, S, D, C);
-		$display("S              A                     B                     D                     C");
-		$monitor("%b (%d) (0x%0h); %b (%d) (0x%0h); %b (%d) (0x%0h); %b (%d) (0x%0h); %b (%d) (0x%0h)",
+		$display("S              A                      B                      D                      C");
+		$monitor("%b (%d) (0x%h); %b (%d) (0x%h); %b (%d) (0x%h); %b (%d) (0x%h); %b (%d) (0x%h)",
 			S, S, S, A, A, A, B, B, B, D, D, D, C, C, C);
 	end
 

@@ -60,11 +60,21 @@ instructions. Note that division requires multiple cycles to complete and
 
 | Name | Format | Example | Description |
 | --- | --- | --- | --- |
-| (general) | `100 S X RRR` | (see below) | Perform special arithmetic operation S on register `RRR` and the accumulator. |
+| (general) | `100 S X RRR` | (see below) | Perform special arithmetic operation `S` on register `RRR` and the accumulator. |
 | `MUL` | `100 0 X RRR` | `MUL R0` | Multiply the accumulator by register `RRR` (unsigned). |
 | `DIV` | `100 1 X RRR` | `DIV R2` | Divide the accumulator by register `RRR` (unsigned). |
 
 TODO: actually use the extra bit. No reason not to.
+
+### Branch Instructions
+All branches (for now) are PC-relative, and the branch constant `CCCC` is sign-extended to allow branching backwards.
+
+| Name | Format | Example | Description |
+| --- | --- | --- | --- |
+| (general) | `01 SS CCCC` | (see below) | Perform branch type `SS` to `R7 + CCCC`. |
+| `B` | `01 00 CCCC` | (see below) | Unconditionally branch to `R7 + CCCC`. |
+| `BZ` | `01 01 CCCC` | (see below) | Branch to `R7 + CCCC` if the accumulator is zero. |
+| `BNN` | `01 10 CCCC` | (see below) | Branch to `R7 + CCCC` if the accumulator is nonnegative. |
 
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®

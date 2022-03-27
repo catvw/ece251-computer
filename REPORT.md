@@ -86,6 +86,19 @@ Not too much to say about these aside from their descriptions.
 | `LD` | `1110 0 RRR` | `LD [R1]` | Load the data at the address contained in register `RRR` into the accumulator. |
 | `ST` | `1110 1 RRR` | `ST [R1]` | Store the data in the accumulator to the address contained in register `RRR`. |
 
+### Special-Case Instructions
+There are a few other operations this computer performs which aren't covered by
+the above categories, and are thus presented below.
+
+| Name | Format | Example | Description |
+| --- | --- | --- | --- |
+| `SET` | `1100 CCCC` | `SET #13` | Set the lower 4 bits of the accumulator to `CCCC`. |
+| `MOV` | `1101 D RRR` | `MOV >R0` | If `D` is set, move the contents of the accumulator into register `RRR`. Else, move the contents of register `RRR` into the accumulator. |
+| `HLT` | `1010 XXXX` | `HLT` | Halts the processor (really just calls `$finish`). |
+| `NO` | `1111 XXXX` | `NO` | No-op. |
+
+Any instruction not listed above is considered an illegal instruction and may have exciting consequences when executed.
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

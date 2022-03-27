@@ -99,6 +99,23 @@ the above categories, and are thus presented below.
 
 Any instruction not listed above is considered an illegal instruction and may have exciting consequences when executed.
 
+## ALU Specifications
+Since I was able to design the ALU as well, I did so with the ISA in mind. The
+ALU has a 3-bit select input (`S`), two 8-bit numerical inputs (`A` and `B`),
+one 8-bit output (`D`), and one carry output (`C`, currently unused). The
+available operations are described in the following table.
+
+| Select | Operation | Description |
+| --- | --- | --- |
+| `000` | `D = A + B` | Add `A` and `B`. |
+| `001` | `D = A - B` | Subtract `B` from `A`. |
+| `010` | `D = A & B` | Bitwise-AND `A` and `B`. |
+| `011` | `D = A | B` | Bitwise-OR `A` and `B`. |
+| `100` | `D = A << B` | Shift `A` left by `B`. |
+| `101` | `D = A >> B` | Shift `A` right by `B`. |
+| `110` | `D = A ^ B` | Bitwise-XOR `A` and `B`. |
+| `111` | `D = ~A` | Bitwise-negate `A`. |
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

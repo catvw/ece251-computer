@@ -1,3 +1,5 @@
+`include "../full_adder/full_adder.v"
+
 module eight_adder(
 		input[7:0] A, B, // input numbers
 		input Cin, // carry-in
@@ -15,5 +17,4 @@ module eight_adder(
 	full_adder a5(A[5], B[5], carry[4], S[5], carry[5]);
 	full_adder a6(A[6], B[6], carry[5], S[6], carry[6]);
 	full_adder a7(A[7], B[7], carry[6], S[7], Cout);
-
 endmodule

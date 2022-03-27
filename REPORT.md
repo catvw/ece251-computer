@@ -77,6 +77,15 @@ sign-extended to allow branching backwards.
 | `BZ` | `01 01 CCCC` | `BZ label` | Branch to `R7 + CCCC` if the accumulator is zero. |
 | `BNN` | `01 10 CCCC` | `BNN label` | Branch to `R7 + CCCC` if the accumulator is nonnegative. |
 
+### Memory-Transfer Instructions
+Not too much to say about these aside from their descriptions.
+
+| Name | Format | Example | Description |
+| --- | --- | --- | --- |
+| (general) | `1110 S RRR` | (see below) | Perform memory operation `S` using register `RRR` as an argument. |
+| `LD` | `1110 0 RRR` | `LD [R1]` | Load the data at the address contained in register `RRR` into the accumulator. |
+| `ST` | `1110 1 RRR` | `ST [R1]` | Store the data in the accumulator to the address contained in register `RRR`. |
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

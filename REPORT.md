@@ -48,7 +48,7 @@ instructions. Note that division requires multiple cycles to complete and
 
 | Name | Format | Example | Description |
 | --- | --- | --- | --- |
-| (general) | `100 S X RRR` | (see below) | Perform ALU operation SSS on register `RRR`/immediate `III` and the accumulator. |
+| (general) | `100 S X RRR` | (see below) | Perform special arithmetic operation S on register `RRR` and the accumulator. |
 | `MUL` | `100 0 X RRR` | `MUL R0` | Multiply the accumulator by register `RRR` (unsigned). |
 | `DIV` | `100 1 X RRR` | `DIV R2` | Divide the accumulator by register `RRR` (unsigned). |
 

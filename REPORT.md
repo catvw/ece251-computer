@@ -97,7 +97,8 @@ the above categories, and are thus presented below.
 | `HLT` | `1010 XXXX` | `HLT` | Halts the processor (really just calls `$finish`). |
 | `NO` | `1111 XXXX` | `NO` | No-op. |
 
-Any instruction not listed above is considered an illegal instruction and may have exciting consequences when executed.
+Any instruction not listed above is considered an illegal instruction and may
+have exciting consequences when executed.
 
 ## ALU Specifications
 Since I was able to design the ALU as well, I did so with the ISA in mind. The

@@ -1,7 +1,3 @@
-// fpga4student.com: FPGA projects, Verilog projects, VHDL projects
-// Verilog project: Verilog code for ALU
-// by FPGA4STUDENT
-// Reference https://www.fpga4student.com/2017/06/Verilog-code-for-ALU.html
 `timescale 1ms / 1ms  
 
 module alu_tb;

@@ -15,8 +15,20 @@ immediate. Since space within an instruction is highly constrained, this
 computer uses an accumulator as both an argument and target register for most
 instructions.
 
-TODO: split instructions in half: have one-byte and two-byte versions depending
-on whether an immediate is necessary. That probably isn't too complicated.
+The computer is also 8-bit addressed and byte-addressable. This allows only 256
+bytes of addressable memory, but, given that it is a computer made fro the
+purpose of learning about computer architecture, this was deemed to be fine.
+
+Instruction and data memory are stored in the same bank (von Neumann
+architecture).
+
+TODO: maybe split instructions in half: have one-byte and two-byte versions
+depending on whether an immediate is necessary. That probably isn't too
+complicated.
+
+## Registers
+There are 8 registers, so as to fit register specifications into 3 bits each.
+Register 7 (`R7`) is also used as the program counter.
 
 ## Instructions in Detail
 There are about 4 instruction formats, along with a few miscellaneous

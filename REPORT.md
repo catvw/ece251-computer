@@ -93,7 +93,7 @@ the above categories, and are thus presented below.
 | Name | Format | Example | Description |
 | --- | --- | --- | --- |
 | `SET` | `1100 CCCC` | `SET #13` | Set the lower 4 bits of the accumulator to `CCCC`. |
-| `MOV` | `1101 D RRR` | `MOV >R0` | If `D` is set, move the contents of the accumulator into register `RRR`. Else, move the contents of register `RRR` into the accumulator. |
+| `MOV` | `1101 D RRR` | `MOV >R0` | If `D` is set, move the the accumulator into register `RRR`. Else, do the reverse. |
 | `HLT` | `1010 XXXX` | `HLT` | Halts the processor (really just calls `$finish`). |
 | `NO` | `1111 XXXX` | `NO` | No-op. |
 

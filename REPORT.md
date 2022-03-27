@@ -15,6 +15,30 @@ immediate. Since space within an instruction is highly constrained, this
 computer uses an accumulator as both an argument and target register for most
 instructions.
 
+## Instructions in Detail
+There are about 4 instruction formats, along with a few miscellaneous
+special-case instructions. This is not as simple as I would have liked, but
+there are not that many bits per instruction, so this seemed the most efficient
+use of program space. The instructions (in their respective categories) are
+described in the following sections.
+
+### ALU Instructions
+Note that this is not called "arithmetic instructions," as multiplication and
+division are not ALU operations.
+
+| Name | Format | Example | Description |
+| --- | --- | --- | --- |
+| (general) | `00 SSS RRR/III` | (see below) | Perform ALU operation SSS on register
+`RRR`/immediate `III` and the accumulator. |
+| `ADD` | `00 000 RRR` | `ADD R1` | Add register `RRR` to the accumulator. |
+| `SUB` | `00 001 RRR` | `SUB R3` | Subtract register `RRR` from the accumulator. |
+| `AND` | `00 010 RRR` | `AND R6` | Bitwise-AND the accumulator with register `RRR`. |
+| `OR` | `00 011 RRR` | `OR R5` | Bitwise-OR the accumulator with register `RRR`. |
+| `LSL` | `00 100 CCC` | `LSL #3` | Shift the accumulator left by `CCC` bits. |
+| `LSR` | `00 101 CCC` | `LSR #5` | Shift the accumulator right by `CCC` bits. |
+| `XOR` | `00 110 RRR` | `XOR R3` | Bitwise-XOR the accumulator with register `RRR`. |
+| `NOT` | `00 111 XXX` | `NOT` | Bitwise-negate the accumulator. |
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

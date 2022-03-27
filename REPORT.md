@@ -67,7 +67,8 @@ instructions. Note that division requires multiple cycles to complete and
 TODO: actually use the extra bit. No reason not to.
 
 ### Branch Instructions
-All branches (for now) are PC-relative, and the branch constant `CCCC` is sign-extended to allow branching backwards.
+All branches (for now) are PC-relative, and the branch constant `CCCC` is
+sign-extended to allow branching backwards.
 
 | Name | Format | Example | Description |
 | --- | --- | --- | --- |

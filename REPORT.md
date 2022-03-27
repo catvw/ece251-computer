@@ -15,6 +15,9 @@ immediate. Since space within an instruction is highly constrained, this
 computer uses an accumulator as both an argument and target register for most
 instructions.
 
+TODO: split instructions in half: have one-byte and two-byte versions depending
+on whether an immediate is necessary. That probably isn't too complicated.
+
 ## Instructions in Detail
 There are about 4 instruction formats, along with a few miscellaneous
 special-case instructions. This is not as simple as I would have liked, but
@@ -37,6 +40,19 @@ division are not ALU operations.
 | `LSR` | `00 101 CCC` | `LSR #5` | Shift the accumulator right by `CCC` bits. |
 | `XOR` | `00 110 RRR` | `XOR R3` | Bitwise-XOR the accumulator with register `RRR`. |
 | `NOT` | `00 111 XXX` | `NOT` | Bitwise-negate the accumulator. |
+
+### Special Arithmetic Instructions
+Multiply and divide both require specialized hardware, and thus are not ALU
+instructions. Note that division requires multiple cycles to complete and
+*will* cause a processor stall until finished.
+
+| Name | Format | Example | Description |
+| --- | --- | --- | --- |
+| (general) | `100 S X RRR` | (see below) | Perform ALU operation SSS on register `RRR`/immediate `III` and the accumulator. |
+| `MUL` | `100 0 X RRR` | `MUL R0` | Multiply the accumulator by register `RRR` (unsigned). |
+| `DIV` | `100 1 X RRR` | `DIV R2` | Divide the accumulator by register `RRR` (unsigned). |
+
+TODO: actually use the extra bit. No reason not to.
 
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®

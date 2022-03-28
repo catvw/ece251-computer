@@ -175,6 +175,13 @@ with the right bits, all ORed together at the output. Also, because I am lazy,
 I only built explicit left-shift logic, which is used with the input and output
 bits swapped end-for-end for right shifts.
 
+# Pipelining
+This computer was originally implemented as a single-cycle machine. Pipelining
+an accumulator-based machine seemed impossible at first, as every instruction
+would potentially constitute a data hazard due to the accumulator being
+accessed on every instruction. After a few deep breaths, I decided to tackle
+each instruction class in turn to see whether anything could be done.
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

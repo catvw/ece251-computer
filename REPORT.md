@@ -162,7 +162,7 @@ characterizes the input-output logic.
 S2 S0      ---|---|---|---
         11  0 | 1 | 0 | 1
            ---|---|---|---
-        10  0 | 0 | 1 | 1
+        10  1 | 1 | 0 | 0
 ```
 
 One solution to this map is `S0(A ^ B) + ~S2(AB) + S2(~S0)(~A)`, which

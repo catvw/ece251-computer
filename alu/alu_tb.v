@@ -16,7 +16,7 @@ module alu_tb;
 
 	alu test_alu(A, B, S, D, C);
 	initial begin
-		A = 8'h03;
+		A = 8'h83;
 		B = 8'h06;
 		S = 3'h0;
 

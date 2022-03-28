@@ -168,6 +168,13 @@ S2 S0      ---|---|---|---
 One solution to this map is `S0(A ^ B) + ~S2(AB) + S2(~S0)(~A)`, which
 is the per-bit logic used by this computer.
 
+## Bit-Shifts
+Since this is not a digital logic design course, I used the first circuit I
+thought of: one logic line per possible position (of which there are 8), ANDed
+with the right bits, all ORed together at the output. Also, because I am lazy,
+I only built explicit left-shift logic, which is used with the input and output
+bits swapped end-for-end for right shifts.
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

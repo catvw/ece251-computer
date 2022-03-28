@@ -3,6 +3,7 @@
 
 `include "../eight_adder/eight_adder.v"
 `include "../twos_comp/twos_comp.v"
+`include "../shift/shift.v"
 
 module alu(
 		input[7:0] A, B, // inputs to operate on
@@ -14,7 +15,7 @@ module alu(
 	wire Cin;
 	wire Cout;
 	wire[7:0] adder_out;
-	reg[8:0] intermediate;
+	wire[7:0] shift_out;
 
 	wire add_or_sub = ~(S[2] | S[1]); // + or -
 	wire and_or_xor_not = S[1]; // one of &|^~
@@ -30,23 +31,15 @@ module alu(
 	// set up the output multiplexer
 	assign C = add_or_sub ? Cout :
 		and_or_xor_not ? 1'b0 :
-		intermediate[8]; // not always carry-out
+		1'b0; // not always carry-out
 	assign D = add_or_sub ? adder_out :
 		and_or_xor_not ? logical_out :
-		intermediate[7:0];
+		shift_out;
 	assign Cin = 0; // TODO: use this
 
 	eight_adder adder(A, B_multi, Cin, adder_out, Cout);
 	twos_comp comp_calc(B, B_neg);
-
-	always @(A, B, S) begin
-		case(S)
-			3'b100:
-				intermediate = A << B;
-			3'b101:
-				intermediate = A >> B;
-		endcase
-	end
+	shift shifter(A, B[2:0], S[0], shift_out); // as S[0] sets shift direction
 endmodule
 
 `endif

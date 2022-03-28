@@ -54,8 +54,8 @@ division are not ALU operations.
 | `OR` | `00 011 RRR` | `OR R5` | Bitwise-OR the accumulator with register `RRR`. |
 | `LSL` | `00 100 CCC` | `LSL #3` | Shift the accumulator left by `CCC` bits. |
 | `LSR` | `00 101 CCC` | `LSR #5` | Shift the accumulator right by `CCC` bits. |
-| `XOR` | `00 110 RRR` | `XOR R3` | Bitwise-XOR the accumulator with register `RRR`. |
-| `NOT` | `00 111 XXX` | `NOT` | Bitwise-negate the accumulator. |
+| `NOT` | `00 110 XXX` | `NOT` | Bitwise-negate the accumulator. |
+| `XOR` | `00 111 RRR` | `XOR R3` | Bitwise-XOR the accumulator with register `RRR`. |
 
 ### Special Arithmetic Instructions
 Multiply and divide both require specialized hardware, and thus are not ALU
@@ -118,8 +118,12 @@ available operations are described in the following table.
 | `011` | `D = A \| B` | Bitwise-OR `A` and `B`. |
 | `100` | `D = A << B` | Shift `A` left by `B`. |
 | `101` | `D = A >> B` | Shift `A` right by `B`. |
-| `110` | `D = A ^ B` | Bitwise-XOR `A` and `B`. |
-| `111` | `D = ~A` | Bitwise-negate `A`. |
+| `110` | `D = ~A` | Bitwise-negate `A`. |
+| `111` | `D = A ^ B` | Bitwise-XOR `A` and `B`. |
+
+The NOT and XOR operations were swapped in the original specification, but I
+realized that arranging them this way would make for simpler ALU logic (see
+below).
 
 # ALU Internals
 The ALU, as per the specification above, supports 8 operations. The internal
@@ -141,6 +145,28 @@ second input to the adder used for addition.
 Note: in actual hardware, this could be implemented using mostly half-adders
 rather than full-adders to save transistors, as there is no real "second
 input."
+
+## Logical Operations
+Since the bitwise logical operators work, well, bit-by-bit, their circuits use
+direct combinational logic with the input and select bits to cut down on the
+number of multiplexers necessary. As each bit of the input behaves the same way
+with respect to its corresponding output bit, the following Karnaugh map fully
+characterizes the input-output logic.
+
+```
+                 A B
+           00  01  11  10
+        00  0 | 0 | 1 | 0
+           ---|---|---|---
+        01  0 | 1 | 1 | 1
+S2 S0      ---|---|---|---
+        11  0 | 1 | 0 | 1
+           ---|---|---|---
+        10  0 | 0 | 1 | 1
+```
+
+One solution to this map is `S0(A ^ B) + ~S2(AB) + S2(~S0)(~A)`, which
+is the per-bit logic used by this computer.
 
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®

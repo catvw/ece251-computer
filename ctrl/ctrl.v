@@ -167,26 +167,20 @@ module ctrl(
 				$display("  ADD/SUB %b", exec_instr[3:0]);
 				accumulator <= ALU_result;
 			end
-			/*
 			4'b0001: begin // AND/OR
-				$display("  AND/OR %b", next_instr[3:0]);
-				immediate = 0;
-				#1; // do the thing
-				accumulator <= D;
+				$display("  AND/OR %b", exec_instr[3:0]);
+				accumulator <= ALU_result;
 			end
 			4'b0010: begin // LSL/LSR
-				$display("  LSL/LSR %b", next_instr[3:0]);
-				immediate = 1;
-				#1; // do the thing
-				accumulator <= D;
+				$display("  LSL/LSR %b", exec_instr[3:0]);
+				accumulator <= ALU_result;
 			end
-			4'b0011: begin // XOR/NOT
-				$display("  XOR/NOT %b", next_instr[3:0]);
-				immediate = 0;
-				#1; // do the thing
-				accumulator <= D;
+			4'b0011: begin // NOT/XOR
+				$display("  NOT/XOR %b", exec_instr[3:0]);
+				accumulator <= ALU_result;
 			end
 
+			/*
 			4'b0100: begin // B
 				$display("  B %b", next_instr[3:0]);
 				// bring branch line high to set up instruction ALU

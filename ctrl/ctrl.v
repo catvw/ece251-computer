@@ -101,28 +101,56 @@ module ctrl(
 		//$monitor("0x%h: %b (%d)", register_file[7], next_instr, next_instr);
 	end
 
+	reg[7:0] fetch_address;
+	reg[7:0] fetch_instr;
+
+	reg[7:0] exec_instr;
+	reg[7:0] exec_register;
+
+	initial begin
+		fetch_address <= 8'b0;
+		fetch_instr <= 8'hFF;
+		exec_instr <= 8'hFF;
+		accumulator <= 8'b0;
+		register_file[0] <= 0;
+		register_file[1] <= 1;
+		register_file[2] <= 2;
+		register_file[3] <= 3;
+		register_file[4] <= 4;
+		register_file[5] <= 5;
+		register_file[6] <= 6;
+	end
+
+	always @(negedge clock) begin
+		// handle clock cleanup
+		mem_clock <= 0;
+
+		// transfer pipeline registers
+		fetch_address <= register_file[7];
+		exec_instr <= from_mem;
+	end
+
 	always @(posedge clock) begin
 		// reset from last cycle
-		branch <= 0;
+		//branch <= 0;
 
-		// load the next instruction from memory if we're not still working on
-		// the last one
-		address <= register_file[7];
+		// set up instruction fetch
 		mem_write <= 0;
 		mem_clock <= 1;
-		#1;
-		next_instr <= from_mem;
-		#1;
-		$display("0x%h: %d (%b)", address, next_instr, next_instr);
-		mem_clock = 0;
+		address <= fetch_address;
 
-		case(next_instr[7:4])
+		// set up register file read
+		exec_register <= register_file[exec_instr[2:0]];
+
+		// set up instruction execute
+		$display("0x%h: %d (%b)", address, exec_instr, exec_instr);
+
+		case(exec_instr[7:4])
 			4'b0000: begin // ADD/SUB
-				$display("  ADD/SUB %b", next_instr[3:0]);
-				immediate = 0;
-				#1; // do the thing
-				accumulator <= D;
+				$display("  ADD/SUB %b", exec_instr[3:0]);
+				accumulator <= accumulator + exec_register;
 			end
+			/*
 			4'b0001: begin // AND/OR
 				$display("  AND/OR %b", next_instr[3:0]);
 				immediate = 0;
@@ -221,13 +249,13 @@ module ctrl(
 			default: begin // just in case
 				$display("illegal instruction");
 				$finish;
-			end
+			end*/
 		endcase
 
 		#1;
 		$display("  accumulator is %b (%d)", accumulator, accumulator);
 
-		#1;
-		register_file[7] = new_inst_address; // TODO: use the ALU for this
+		//#1;
+		register_file[7] = register_file[7] + 1; // TODO: use the ALU for this
 	end
 endmodule

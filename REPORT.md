@@ -182,6 +182,8 @@ would potentially constitute a data hazard due to the accumulator being
 accessed on every instruction. After a few deep breaths, I decided to tackle
 each instruction class in turn to see whether anything could be done.
 
+## Stages and Model
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

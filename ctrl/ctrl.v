@@ -243,6 +243,16 @@ module ctrl(
 				$display("  NO");
 			end
 
+			4'b1010: begin // HLT
+				$display("  HLT");
+				$finish;
+			end
+
+			default: begin // just in case
+				$display("illegal instruction");
+				$finish;
+			end
+
 			/*
 			4'b1000: begin // MUL
 				$display("  MUL %b", next_instr[3:0]);
@@ -262,16 +272,6 @@ module ctrl(
 					accumulator <= Q;
 					$display("  complete");
 				end
-			end
-
-			4'b1010: begin // HLT
-				$display("  HLT");
-				$finish;
-			end
-
-			default: begin // just in case
-				$display("illegal instruction");
-				$finish;
 			end*/
 		endcase
 	end

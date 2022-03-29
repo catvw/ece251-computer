@@ -188,8 +188,8 @@ each instruction class in turn to see whether anything could be done.
 of the program counter, and the memory clock is set high.
 
 **Falling-edge**: the result of the memory access is read into the `exec_instr`
-register, and the value of the register specified by the instruction's argument
-is read into the `exec_register` register.
+register, the value of the register specified by the instruction's argument is
+read into the `exec_register` register, and the memory clock is set low.
 
 ### Instruction Execute
 **Rising-edge**: the accumulator is assigned its new value, depending on the

@@ -241,6 +241,10 @@ value to the program counter. Even more fortuitously, those assignments both
 use the value `address + [branch offset]`, as the program counter is
 incremented on the next falling edge! Sometimes things just work out.
 
+# `MUL` and `DIV`
+`MUL` is as simple as an ALU instruction; it just has an extra switch to use
+dedicated multiplication hardware.
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

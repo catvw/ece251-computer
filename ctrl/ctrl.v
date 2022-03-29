@@ -143,6 +143,9 @@ module ctrl(
 	wire ALU_Cout;
 	alu general_alu(accumulator, exec_register, ALU_op, ALU_result, ALU_Cout);
 
+	wire[7:0] product;
+	mult general_mult(accumulator, exec_register, product);
+
 	always @(negedge clock) begin
 		// handle clock cleanup
 		mem_clock <= 0;
@@ -239,6 +242,11 @@ module ctrl(
 				end
 			end
 
+			4'b1000: begin
+				$display("  MUL %b", exec_instr[3:0]);
+				accumulator <= product;
+			end
+
 			4'b1111: begin
 				$display("  NO");
 			end
@@ -254,12 +262,6 @@ module ctrl(
 			end
 
 			/*
-			4'b1000: begin // MUL
-				$display("  MUL %b", next_instr[3:0]);
-				#1; // let the multiply happen
-				accumulator <= P;
-			end
-
 			4'b1001: begin // DIV
 				$display("  DIV %b", next_instr[3:0]);
 				div_start <= ~div_active; // start if we haven't yet

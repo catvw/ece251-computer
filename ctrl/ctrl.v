@@ -216,29 +216,30 @@ module ctrl(
 				stall_for_load_store <= 1;
 			end
 
+			4'b0100: begin // B
+				$display("  B %b", exec_instr[3:0]);
+				// hijack instruction load and program counter addition
+				address <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
+				register_file[7] <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
+			end
+
+			4'b0101: begin // BZ
+				$display("  BZ %b", exec_instr[3:0]);
+				// bring branch line high if accumulator is zero
+				//if (accumulator == 0) branch <= 1; // XXX; use ANDs
+			end
+
+			4'b0110: begin // BNN
+				$display("  BNN %b", exec_instr[3:0]);
+				// bring branch line high if accumulator is nonnegative
+				//branch <= ~accumulator[7]; // TODO: use a proper MUX for this
+			end
+
 			4'b1111: begin // NO
 				$display("  NO");
 			end
 
 			/*
-			4'b0100: begin // B
-				$display("  B %b", next_instr[3:0]);
-				// bring branch line high to set up instruction ALU
-				branch <= 1;
-			end
-
-			4'b0101: begin // BZ
-				$display("  BZ %b", next_instr[3:0]);
-				// bring branch line high if accumulator is zero
-				if (accumulator == 0) branch <= 1; // XXX; use ANDs
-			end
-
-			4'b0110: begin // BNN
-				$display("  BNN %b", next_instr[3:0]);
-				// bring branch line high if accumulator is nonnegative
-				branch <= ~accumulator[7]; // TODO: use a proper MUX for this
-			end
-
 			4'b1000: begin // MUL
 				$display("  MUL %b", next_instr[3:0]);
 				#1; // let the multiply happen

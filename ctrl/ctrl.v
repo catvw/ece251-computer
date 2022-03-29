@@ -225,14 +225,18 @@ module ctrl(
 
 			4'b0101: begin // BZ
 				$display("  BZ %b", exec_instr[3:0]);
-				// bring branch line high if accumulator is zero
-				//if (accumulator == 0) branch <= 1; // XXX; use ANDs
+				if (accumulator == 0) begin
+					address <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
+					register_file[7] <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
+				end
 			end
 
 			4'b0110: begin // BNN
 				$display("  BNN %b", exec_instr[3:0]);
-				// bring branch line high if accumulator is nonnegative
-				//branch <= ~accumulator[7]; // TODO: use a proper MUX for this
+				if (~accumulator[7]) begin
+					address <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
+					register_file[7] <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
+				end
 			end
 
 			4'b1111: begin // NO

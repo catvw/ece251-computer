@@ -60,12 +60,26 @@ module ctrl(
 	wire[7:0] product;
 	mult general_mult(accumulator, exec_register, product);
 
+	wire[7:0] quotient;
+	reg stall_for_div;
+	wire div_complete;
+	div general_div(accumulator, exec_register, clock, stall_for_div, quotient,
+	                div_complete);
+
 	always @(negedge clock) begin
-		// handle clock cleanup
+		// general cleanup
 		mem_clock <= 0;
 
-		// finish instruction or data fetch
-		if (stall_for_load_store) begin
+		// finish divide or instruction/data fetch
+		if (stall_for_div) begin
+			exec_instr <= 8'hFF; // no-op, so we don't do anything rash
+
+			if (div_complete) begin
+				stall_for_div <= 0;
+				accumulator <= quotient;
+				$display("  divide finished");
+			end
+		end else if (stall_for_load_store) begin
 			if (~exec_instr[3]) accumulator <= from_mem;
 			exec_instr <= 8'hFF; // no-op, so we don't do anything rash
 			stall_for_load_store <= 0;
@@ -161,6 +175,12 @@ module ctrl(
 				accumulator <= product;
 			end
 
+			4'b1001: begin
+				$display("  DIV %b", exec_instr[3:0]);
+				// stall and start dividing accumulator by exec_register
+				stall_for_div <= 1;
+			end
+
 			4'b1111: begin
 				$display("  NO");
 			end
@@ -176,18 +196,6 @@ module ctrl(
 			end
 
 			/*
-			4'b1001: begin // DIV
-				$display("  DIV %b", next_instr[3:0]);
-				div_start <= ~div_active; // start if we haven't yet
-				// stay active until we finish the divide
-				div_active <= ~div_active ? 1'b1 :
-				                            ~div_complete;
-
-				#4; // finish resolving this cycle
-				if (div_complete) begin
-					accumulator <= Q;
-					$display("  complete");
-				end
 			end*/
 		endcase
 	end

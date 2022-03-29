@@ -223,6 +223,24 @@ will cause the program counter to go to the instruction *after* the given
 address. This makes for a rather simple, though slightly dumb, way to implement
 subroutines.
 
+## `LD` and `ST`
+Since this computer uses single-port memory, load and store operations both
+have to stall the processor for one cycle and take over memory access. I
+handled this by including a `stall_for_load_store` register, incrementing the
+program counter only if the processor was not stalled, and loading a no-op into
+`exec_instr` while stalled. Fortunately, this is only a one-cycle pipeline
+bubble, and so the control logic is not terribly complex:
+`stall_for_load_store` is simply set to zero on the next falling clock edge.
+
+## `B`, `BZ`, and `BNN`
+As it turns out, this architecture permits no-delay branching! Since
+next-instruction loads are set up at the same time as instruction execution,
+and since the branch conditions only depend on the current value of the
+accumulator, they can simply hijack the `address` register and assign a new
+value to the program counter. Even more fortuitously, those assignments both
+use the value `address + [branch offset]`, as the program counter is
+incremented on the next falling edge! Sometimes things just work out.
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

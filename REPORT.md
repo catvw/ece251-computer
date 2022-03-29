@@ -187,16 +187,19 @@ each instruction class in turn to see whether anything could be done.
 **Rising-edge**: the instruction memory address register is assigned the value
 of the program counter, and the memory clock is set high.
 
-**Falling-edge**: if not stalled for a load-store operation, the result of the
-memory access is read into the `exec_instr` register, the value of the register
-specified by the instruction's argument is read into the `exec_register`
-register, the memory clock is set low, and the program counter is incremented.
+**Falling-edge**: if not stalled for a load-store operation or divide, the
+result of the memory access is read into the `exec_instr` register, the value
+of the register specified by the instruction's argument is read into the
+`exec_register` register, the memory clock is set low, and the program counter
+is incremented.
 
 ### Instruction Execute
 **Rising-edge**: the accumulator is assigned its new value, depending on the
-value of `exec_instr`, and the target register is written (if applicable).
+value of `exec_instr`, and the target register is written (if applicable). If
+stalled for a divide, the completeness of the operation is checked and the
+appropriate registers are updated.
 
-**Falling-edge**: if stalled for a load-store instruction, the result of the
+**Falling-edge**: If stalled for a load-store instruction, the result of the
 memory access is read into the accumulator (for loads), and the stall register
 is reset.
 
@@ -244,6 +247,11 @@ incremented on the next falling edge! Sometimes things just work out.
 # `MUL` and `DIV`
 `MUL` is as simple as an ALU instruction; it just has an extra switch to use
 dedicated multiplication hardware.
+
+`DIV` might be the most complex instruction. When a divide occurs, the
+processor is stalled with `stall_for_div` set and no-ops are executed until
+`div_complete` indicates that the result of the division is ready to be read
+into the accumulator. Once that happens, execution resumes as usual.
 
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®

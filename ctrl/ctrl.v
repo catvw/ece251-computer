@@ -11,104 +11,16 @@ module ctrl(
 		output[7:0] to_mem,
 		output mem_clock,
 		output mem_write,
-
-		// communication with the general-purpose ALU
-		output[7:0] A, B,
-		output[2:0] S,
-		input[7:0] D,
-		input C,
-
-		// communication with the multiplier
-		output[7:0] mA, mB,
-		input[7:0] P,
-
-		// communication with the divider
-		output[7:0] dA, dB,
-		output div_clock,
-		output div_start,
-		input[7:0] Q,
-		input div_complete,
-
-		// communication with the address ALU
-		output[7:0] inst_address,
-		output[7:0] inst_offset,
-		input[7:0] new_inst_address,
-		output[2:0] inst_op_select
 	);
 
 	// external variables
-	/*
-	wire clock;
-
-	wire[7:0] A, B;
-	wire[2:0] S;
-	wire[7:0] D;
-	wire C;
-
-	wire[7:0] mA, mB, P;
-
-	wire[7:0] dA, dB, Q;
-	wire div_clock;
-	reg div_start;
-	wire div_complete;
-	*/
-
 	reg[7:0] address;
 	wire[7:0] from_mem;
 	reg[7:0] to_mem;
 	reg mem_clock;
 	reg mem_write;
 
-	/*
-	wire[7:0] inst_address;
-	wire[7:0] inst_offset;
-	wire[7:0] new_inst_address;
-	reg[2:0] inst_op_select;
-
 	// internal variables
-	reg[7:0] accumulator;
-	reg[7:0] register_file[7:0];
-	reg[7:0] next_instr;
-	wire[3:0] inst_arg;
-	reg branch;
-	reg immediate; // used for ALU ops
-	wire acc_to_reg;
-	reg div_active;
-	wire multi_cycle; // used for multi-cycle instructions (like DIV)
-
-	assign inst_address = register_file[7];
-	
-	assign inst_offset = 
-		branch ? {{4{next_instr[3]}}, next_instr[3:0]} : // sign-extended offset
-		multi_cycle ? 8'b0 : // don't move at all if still working
-		         8'b1; // just move one ahead if not branching
-
-	assign acc_to_mem = next_instr[3]; // the D bit for moves & LD/ST
-
-	assign A = accumulator;
-	assign B = immediate ? {5'b0, next_instr[2:0]} :
-	                       register_file[next_instr[2:0]];
-	assign S = next_instr[5:3]; // the ALU select bits encoded in ALU insts
-
-	assign mA = accumulator;
-	assign mB = register_file[next_instr[2:0]];
-
-	assign dA = accumulator;
-	assign dB = register_file[next_instr[2:0]];
-	assign div_clock = ~clock & div_active;
-
-	assign multi_cycle = div_active;
-
-	initial begin
-		mem_clock = 0;
-		mem_write = 0;
-		register_file[7] = 8'b0;
-		inst_op_select = 3'b0; // always add
-		div_active = 0;
-		//$monitor("0x%h: %b (%d)", register_file[7], next_instr, next_instr);
-	end
-	*/
-
 	reg[7:0] accumulator;
 	reg[7:0] register_file[7:0];
 

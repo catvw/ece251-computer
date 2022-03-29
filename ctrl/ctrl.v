@@ -1,6 +1,10 @@
 `include "../alu/alu.v"
 `include "../mult/mult.v"
 `include "../div/div.v"
+`include "../eight_adder/eight_adder.v"
+
+// program counter
+`define PC register_file[7]
 
 module ctrl(
 		input clock,
@@ -69,8 +73,23 @@ module ctrl(
 	div general_div(accumulator, exec_register, clock, stall_for_div, quotient,
 	                div_complete);
 
+	// instruction-type logic lines
+	wire is_branch = ~exec_instr[7] & exec_instr[6];
+
 	// multiplexer for next instruction to execute
 	wire[7:0] next_exec = stall ? 8'hFF : from_mem;
+
+	// program counter advance calculation
+	wire[7:0] next_pc;
+	wire pc_adder_Cout;
+
+	// lower 4 instruction bits, sign-extended
+	wire[7:0] sign_ext_branch_diff = {{4{exec_instr[3]}}, exec_instr[3:0]};
+
+	// branch diff ANDed with whether we're executing a branch
+	wire[7:0] cond_branch_diff = {8{is_branch}} & sign_ext_branch_diff;
+	eight_adder pc_adder(`PC, cond_branch_diff, ~stall, next_pc,
+	                     pc_adder_Cout);
 
 	always @(negedge clock) begin
 		// finish divide or instruction/data fetch
@@ -82,7 +101,7 @@ module ctrl(
 		end
 
 		exec_register <= register_file[from_mem[2:0]];
-		register_file[7] <= register_file[7] + {7'b0, ~stall}; // TODO: use the ALU for this
+		`PC <= next_pc;
 		$display("  accumulator is %b (%d)", accumulator, accumulator);
 	end
 
@@ -140,23 +159,20 @@ module ctrl(
 			4'b0100: begin
 				$display("  B %b", exec_instr[3:0]);
 				// hijack instruction load and program counter addition
-				address <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
-				register_file[7] <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
+				address <= address + sign_ext_branch_diff;
 			end
 
 			4'b0101: begin
 				$display("  BZ %b", exec_instr[3:0]);
 				if (accumulator == 0) begin
-					address <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
-					register_file[7] <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
+					address <= address + sign_ext_branch_diff;
 				end
 			end
 
 			4'b0110: begin
 				$display("  BNN %b", exec_instr[3:0]);
 				if (~accumulator[7]) begin
-					address <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
-					register_file[7] <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
+					address <= address + sign_ext_branch_diff;
 				end
 			end
 

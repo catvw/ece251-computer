@@ -108,6 +108,7 @@ module ctrl(
 
 	// whether we should just advance the program counter by one
 	wire advance_by_one = ~(stall | should_branch);
+
 	eight_adder pc_adder(`PC, cond_branch_diff, advance_by_one, next_pc,
 	                     pc_adder_Cout);
 

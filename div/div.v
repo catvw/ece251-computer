@@ -1,3 +1,6 @@
+`ifndef DIV
+`define DIV
+
 module div(
 		input[7:0] A, B,
 		input clock,
@@ -53,3 +56,5 @@ module div(
 	end
 
 endmodule
+
+`endif

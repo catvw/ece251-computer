@@ -175,6 +175,84 @@ with the right bits, all ORed together at the output. Also, because I am lazy,
 I only built explicit left-shift logic, which is used with the input and output
 bits swapped end-for-end for right shifts.
 
+# Pipelining
+This computer was originally implemented as a single-cycle machine. Pipelining
+an accumulator-based machine seemed impossible at first, as every instruction
+would potentially constitute a data hazard due to the accumulator being
+accessed on every instruction. After a few deep breaths, I decided to tackle
+each instruction class in turn to see whether anything could be done.
+
+## Stages and Model
+### Instruction Fetch
+**Rising-edge**: the instruction memory address register is assigned the value
+of the program counter, and the memory clock is set high.
+
+**Falling-edge**: if not stalled for a load-store operation or divide, the
+result of the memory access is read into the `exec_instr` register, the value
+of the register specified by the instruction's argument is read into the
+`exec_register` register, the memory clock is set low, and the program counter
+is incremented.
+
+### Instruction Execute
+**Rising-edge**: the accumulator is assigned its new value, depending on the
+value of `exec_instr`, and the target register is written (if applicable). If
+stalled for a divide, the completeness of the operation is checked and the
+appropriate registers are updated.
+
+**Falling-edge**: If stalled for a load-store instruction, the result of the
+memory access is read into the accumulator (for loads), and the stall register
+is reset.
+
+## ALU Instructions
+ALU operations pipeline pretty easily, as it happens: the accumulator is simply
+provided as an ALU argument and assigned the value of the ALU output in the
+same cycle, which produces the right result by the falling clock edge. Since
+there's no memory access, no other control logic is necessary.
+
+## `SET` and `MOV`
+`SET`'s implementation is even simpler than the ALU instructions, as it has no
+memory access needs. `MOV`, however, has the capability to write to registers
+as well as read them, causing a potential data hazard if the same register is
+read immediately after it is written. I avoided calamity by resolving register
+writes on the leading clock edge and register reads for the *next* instruction
+on the falling clock edge, which ensures that all registers are in the correct
+state before they are requested again.
+
+Note that there is one exception to this, but it makes for more logical
+operation: `R7`, the program counter, *is* incremented on a falling clock edge;
+however, this means that reads of `R7` will return the address *of the
+instruction doing the read*, not the instruction after it, and *writes* to `R7`
+will cause the program counter to go to the instruction *after* the given
+address. This makes for a rather simple, though slightly dumb, way to implement
+subroutines.
+
+## `LD` and `ST`
+Since this computer uses single-port memory, load and store operations both
+have to stall the processor for one cycle and take over memory access. I
+handled this by including a `stall_for_load_store` register, incrementing the
+program counter only if the processor was not stalled, and loading a no-op into
+`exec_instr` while stalled. Fortunately, this is only a one-cycle pipeline
+bubble, and so the control logic is not terribly complex:
+`stall_for_load_store` is simply set to zero on the next falling clock edge.
+
+## `B`, `BZ`, and `BNN`
+As it turns out, this architecture permits no-delay branching! Since
+next-instruction loads are set up at the same time as instruction execution,
+and since the branch conditions only depend on the current value of the
+accumulator, they can simply hijack the `address` register and assign a new
+value to the program counter. Even more fortuitously, those assignments both
+use the value `address + [branch offset]`, as the program counter is
+incremented on the next falling edge! Sometimes things just work out.
+
+# `MUL` and `DIV`
+`MUL` is as simple as an ALU instruction; it just has an extra switch to use
+dedicated multiplication hardware.
+
+`DIV` might be the most complex instruction. When a divide occurs, the
+processor is stalled with `stall_for_div` set and no-ops are executed until
+`div_complete` indicates that the result of the division is ready to be read
+into the accumulator. Once that happens, execution resumes as usual.
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

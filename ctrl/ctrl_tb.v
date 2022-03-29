@@ -1,4 +1,4 @@
-`timescale 1ms / 1ms  
+`timescale 1ms / 1ms
 `include "../mem/mem.v"
 `include "../alu/alu.v"
 `include "../mult/mult.v"
@@ -41,27 +41,23 @@ module ctrl_tb;
 //		$monitor("#%4d: %b", $time, clock);
 	end
 
-	ctrl test_ctrl(clock,
-		ctrl_addr_out, ctrl_from_mem, ctrl_to_mem, ctrl_mem_clock,
-			ctrl_mem_write,
-		A, B, S, D, C,
-		mA, mB, P,
-		dA, dB, div_clock, div_start, Q, div_complete,
-		inst_address, inst_offset, new_inst_address, inst_op_select);
+	ctrl test_ctrl(
+		clock,
+
+		ctrl_addr_out,
+		ctrl_from_mem,
+		ctrl_to_mem,
+		ctrl_mem_clock,
+		ctrl_mem_write
+	);
+
 	mem test_mem(mem_clock, mem_write, address, to_mem, from_mem);
-	alu general_alu(A, B, S, D, C);
-	alu addr_alu(inst_address, inst_offset, inst_op_select, new_inst_address,
-		inst_carry_out);
-	mult test_mult(mA, mB, P);
-	div test_div(dA, dB, div_clock, div_start, Q, div_complete);
 	always #20 clock = !clock;
 
 	integer program_file;
 	reg[7:0] next_instr;
 	reg[7:0] next_addr;
 	initial begin
-		assign clock = 1; // hold clock at one until we're ready
-
 		// read the program into memory
 		next_addr = 8'b0;
 		program_file = $fopen("program.bin", "r");
@@ -85,8 +81,6 @@ module ctrl_tb;
 		assign to_mem = ctrl_to_mem;
 		assign ctrl_from_mem = from_mem;
 
-		// and we're away!
-		deassign clock;
-		//#1800 $finish;
+		clock <= 1; // and we're away!
 	end
 endmodule

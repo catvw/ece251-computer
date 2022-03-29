@@ -73,12 +73,6 @@ module ctrl(
 		// finish divide or instruction/data fetch
 		if (stall_for_div) begin
 			exec_instr <= 8'hFF; // no-op, so we don't do anything rash
-
-			if (div_complete) begin
-				stall_for_div <= 0;
-				accumulator <= quotient;
-				$display("  divide finished");
-			end
 		end else if (stall_for_load_store) begin
 			if (~exec_instr[3]) accumulator <= from_mem;
 			exec_instr <= 8'hFF; // no-op, so we don't do anything rash
@@ -194,9 +188,12 @@ module ctrl(
 				$display("illegal instruction");
 				$finish;
 			end
-
-			/*
-			end*/
 		endcase
+
+		if (stall_for_div & div_complete) begin
+			stall_for_div <= 0;
+			accumulator <= quotient;
+			$display("  divide finished");
+		end
 	end
 endmodule

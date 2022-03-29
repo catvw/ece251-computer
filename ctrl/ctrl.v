@@ -174,29 +174,29 @@ module ctrl(
 		$display("0x%h: %d (%b)", address, exec_instr, exec_instr);
 
 		case(exec_instr[7:4])
-			4'b0000: begin // ADD/SUB
+			4'b0000: begin
 				$display("  ADD/SUB %b", exec_instr[3:0]);
 				accumulator <= ALU_result;
 			end
-			4'b0001: begin // AND/OR
+			4'b0001: begin
 				$display("  AND/OR %b", exec_instr[3:0]);
 				accumulator <= ALU_result;
 			end
-			4'b0010: begin // LSL/LSR
+			4'b0010: begin
 				$display("  LSL/LSR %b", exec_instr[3:0]);
 				accumulator <= ALU_result;
 			end
-			4'b0011: begin // NOT/XOR
+			4'b0011: begin
 				$display("  NOT/XOR %b", exec_instr[3:0]);
 				accumulator <= ALU_result;
 			end
 
-			4'b1100: begin // SET
+			4'b1100: begin
 				$display("  SET %b", exec_instr[3:0]);
 				accumulator[3:0] <= exec_instr[3:0];
 			end
 
-			4'b1101: begin // MOV
+			4'b1101: begin
 				$display("  MOV %b", exec_instr[3:0]);
 				if (exec_instr[3]) // outbound to registers
 					register_file[exec_instr[2:0]] <= accumulator;
@@ -204,7 +204,7 @@ module ctrl(
 					accumulator <= exec_register;
 			end
 
-			4'b1110: begin // LD/ST
+			4'b1110: begin
 				$display("  LD/ST %b", exec_instr[3:0]);
 				address <= exec_register;
 				if (exec_instr[3]) begin
@@ -216,14 +216,14 @@ module ctrl(
 				stall_for_load_store <= 1;
 			end
 
-			4'b0100: begin // B
+			4'b0100: begin
 				$display("  B %b", exec_instr[3:0]);
 				// hijack instruction load and program counter addition
 				address <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
 				register_file[7] <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
 			end
 
-			4'b0101: begin // BZ
+			4'b0101: begin
 				$display("  BZ %b", exec_instr[3:0]);
 				if (accumulator == 0) begin
 					address <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
@@ -231,7 +231,7 @@ module ctrl(
 				end
 			end
 
-			4'b0110: begin // BNN
+			4'b0110: begin
 				$display("  BNN %b", exec_instr[3:0]);
 				if (~accumulator[7]) begin
 					address <= address + {{4{exec_instr[3]}}, exec_instr[3:0]};
@@ -239,11 +239,11 @@ module ctrl(
 				end
 			end
 
-			4'b1111: begin // NO
+			4'b1111: begin
 				$display("  NO");
 			end
 
-			4'b1010: begin // HLT
+			4'b1010: begin
 				$display("  HLT");
 				$finish;
 			end

@@ -32,7 +32,9 @@ module ctrl(
 	reg[7:0] exec_instr;
 	reg[7:0] exec_register;
 
+	reg stall_for_div;
 	reg stall_for_load_store;
+	wire stall = stall_for_div | stall_for_load_store;
 
 	initial begin
 		fetch_address <= 8'b0;
@@ -63,14 +65,12 @@ module ctrl(
 	mult general_mult(accumulator, exec_register, product);
 
 	wire[7:0] quotient;
-	reg stall_for_div;
 	wire div_complete;
 	div general_div(accumulator, exec_register, clock, stall_for_div, quotient,
 	                div_complete);
 
 	// multiplexer for next instruction to execute
-	wire[7:0] next_exec =
-		(stall_for_div | stall_for_load_store) ? 8'hFF : from_mem;
+	wire[7:0] next_exec = stall ? 8'hFF : from_mem;
 
 	always @(negedge clock) begin
 		// finish divide or instruction/data fetch
@@ -79,11 +79,10 @@ module ctrl(
 		if (stall_for_load_store) begin
 			if (~exec_instr[3]) accumulator <= from_mem;
 			stall_for_load_store <= 0;
-		end else if (~stall_for_div) begin
-			exec_register <= register_file[from_mem[2:0]];
-			register_file[7] = register_file[7] + 1; // TODO: use the ALU for this
 		end
 
+		exec_register <= register_file[from_mem[2:0]];
+		register_file[7] <= register_file[7] + {7'b0, ~stall}; // TODO: use the ALU for this
 		$display("  accumulator is %b (%d)", accumulator, accumulator);
 	end
 

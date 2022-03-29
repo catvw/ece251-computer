@@ -10,7 +10,7 @@ module ctrl(
 		input[7:0] from_mem,
 		output[7:0] to_mem,
 		output mem_clock,
-		output mem_write,
+		output mem_write
 	);
 
 	// external variables

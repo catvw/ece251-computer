@@ -253,6 +253,17 @@ processor is stalled with `stall_for_div` set and no-ops are executed until
 `div_complete` indicates that the result of the division is ready to be read
 into the accumulator. Once that happens, execution resumes as usual.
 
+# Gate-Leveling
+The goal for this computer was to implement it in mostly gate-level Verilog. A
+few tricks to get this working properly merit some mention.
+
+## Branches
+Branch calculations are done with an eight-bit adder only, using all three
+inputs: one numeric input each for the program counter and the branch jump
+quantity, and one carry input used instead for a conditional one-byte advance.
+Since instructions are only one byte long, this is possible and saves some
+multiplexers.
+
 # Assembler
 Since I didn't feel like hand-assembling every damn instruction (and wanted an
 excuse to polish my rusty Perl skills), I decided to write an assembler for

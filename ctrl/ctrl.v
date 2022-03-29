@@ -116,10 +116,14 @@ module ctrl(
 	reg[7:0] exec_instr;
 	reg[7:0] exec_register;
 
+	reg stall_for_load_store;
+
 	initial begin
 		fetch_address <= 8'b0;
 		fetch_instr <= 8'hFF;
 		exec_instr <= 8'hFF;
+		stall_for_load_store <= 0;
+
 		accumulator <= 8'b0;
 		register_file[0] <= 0;
 		register_file[1] <= 1;
@@ -143,9 +147,16 @@ module ctrl(
 		// handle clock cleanup
 		mem_clock <= 0;
 
-		// finish instruction fetch
-		exec_instr <= from_mem;
-		exec_register <= register_file[from_mem[2:0]];
+		// finish instruction or data fetch
+		if (stall_for_load_store) begin
+			if (~exec_instr[3]) accumulator <= from_mem;
+			exec_instr <= 8'hFF; // no-op, so we don't do anything rash
+			stall_for_load_store <= 0;
+		end else begin
+			exec_instr <= from_mem;
+			exec_register <= register_file[from_mem[2:0]];
+			register_file[7] = register_file[7] + 1; // TODO: use the ALU for this
+		end
 
 		$display("  accumulator is %b (%d)", accumulator, accumulator);
 	end
@@ -191,6 +202,22 @@ module ctrl(
 					register_file[exec_instr[2:0]] <= accumulator;
 				else
 					accumulator <= exec_register;
+			end
+
+			4'b1110: begin // LD/ST
+				$display("  LD/ST %b", exec_instr[3:0]);
+				address <= exec_register;
+				if (exec_instr[3]) begin
+					mem_write <= 1;
+					to_mem <= accumulator;
+				end
+
+				// set up special handling on the falling edge
+				stall_for_load_store <= 1;
+			end
+
+			4'b1111: begin // NO
+				$display("  NO");
 			end
 
 			/*
@@ -254,17 +281,10 @@ module ctrl(
 				end
 			end
 
-			4'b1111: begin // NO
-				$display("  NO");
-			end
-
 			default: begin // just in case
 				$display("illegal instruction");
 				$finish;
 			end*/
 		endcase
-
-		//#1;
-		register_file[7] = register_file[7] + 1; // TODO: use the ALU for this
 	end
 endmodule

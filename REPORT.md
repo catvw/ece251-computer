@@ -187,15 +187,18 @@ each instruction class in turn to see whether anything could be done.
 **Rising-edge**: the instruction memory address register is assigned the value
 of the program counter, and the memory clock is set high.
 
-**Falling-edge**: the result of the memory access is read into the `exec_instr`
-register, the value of the register specified by the instruction's argument is
-read into the `exec_register` register, and the memory clock is set low.
+**Falling-edge**: if not stalled for a load-store operation, the result of the
+memory access is read into the `exec_instr` register, the value of the register
+specified by the instruction's argument is read into the `exec_register`
+register, the memory clock is set low, and the program counter is incremented.
 
 ### Instruction Execute
 **Rising-edge**: the accumulator is assigned its new value, depending on the
 value of `exec_instr`, and the target register is written (if applicable).
 
-**Falling-edge**: nothing yet.
+**Falling-edge**: if stalled for a load-store instruction, the result of the
+memory access is read into the accumulator (for loads), and the stall register
+is reset.
 
 ## ALU Instructions
 ALU operations pipeline pretty easily, as it happens: the accumulator is simply
@@ -211,6 +214,14 @@ read immediately after it is written. I avoided calamity by resolving register
 writes on the leading clock edge and register reads for the *next* instruction
 on the falling clock edge, which ensures that all registers are in the correct
 state before they are requested again.
+
+Note that there is one exception to this, but it makes for more logical
+operation: `R7`, the program counter, *is* incremented on a falling clock edge;
+however, this means that reads of `R7` will return the address *of the
+instruction doing the read*, not the instruction after it, and *writes* to `R7`
+will cause the program counter to go to the instruction *after* the given
+address. This makes for a rather simple, though slightly dumb, way to implement
+subroutines.
 
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®

@@ -73,8 +73,25 @@ module ctrl(
 	div general_div(accumulator, exec_register, clock, stall_for_div, quotient,
 	                div_complete);
 
-	// instruction-type logic lines
+	// instruction logic lines
 	wire is_branch = ~exec_instr[7] & exec_instr[6];
+	wire should_branch = is_branch & (
+		(
+			// branch if zero
+			exec_instr[4] & ~(
+				accumulator[7] |
+				accumulator[6] |
+				accumulator[5] |
+				accumulator[4] |
+				accumulator[3] |
+				accumulator[2] |
+				accumulator[1] |
+				accumulator[0]
+			)
+		) |
+		// branch if nonnegative
+		(exec_instr[5] & ~accumulator[7])
+	);
 
 	// multiplexer for next instruction to execute
 	wire[7:0] next_exec = stall ? 8'hFF : from_mem;
@@ -87,8 +104,11 @@ module ctrl(
 	wire[7:0] sign_ext_branch_diff = {{4{exec_instr[3]}}, exec_instr[3:0]};
 
 	// branch diff ANDed with whether we're executing a branch
-	wire[7:0] cond_branch_diff = {8{is_branch}} & sign_ext_branch_diff;
-	eight_adder pc_adder(`PC, cond_branch_diff, ~stall, next_pc,
+	wire[7:0] cond_branch_diff = {8{should_branch}} & sign_ext_branch_diff;
+
+	// whether we should just advance the program counter by one
+	wire advance_by_one = ~(stall | should_branch);
+	eight_adder pc_adder(`PC, cond_branch_diff, advance_by_one, next_pc,
 	                     pc_adder_Cout);
 
 	always @(negedge clock) begin

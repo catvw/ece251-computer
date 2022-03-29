@@ -1,3 +1,6 @@
+`ifndef MULT
+`define MULT
+
 module mult(
 		input[7:0] A, B,
 		output[7:0] P
@@ -10,3 +13,5 @@ module mult(
 		P = A * B;
 	end
 endmodule
+
+`endif

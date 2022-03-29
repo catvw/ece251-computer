@@ -1,4 +1,6 @@
 `include "../alu/alu.v"
+`include "../mult/mult.v"
+`include "../div/div.v"
 
 module ctrl(
 		input clock,

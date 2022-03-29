@@ -269,23 +269,6 @@ module ctrl(
 				$finish;
 			end
 
-
-			4'b1110: begin // LD/ST
-				$display("  LD/ST %b", next_instr[3:0]);
-				address <= register_file[next_instr[2:0]];
-				if (acc_to_mem) begin
-					mem_write = 1;
-					to_mem <= accumulator;
-					#1 mem_clock = 1;
-					#1 mem_clock = 0;
-				end else begin
-					mem_write = 0;
-					#1 mem_clock = 1;
-					#1 mem_clock = 0;
-					accumulator <= from_mem;
-				end
-			end
-
 			default: begin // just in case
 				$display("illegal instruction");
 				$finish;

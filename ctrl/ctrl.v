@@ -17,8 +17,10 @@ module ctrl(
 	reg[7:0] address;
 	wire[7:0] from_mem;
 	reg[7:0] to_mem;
-	reg mem_clock;
+	wire mem_clock;
 	reg mem_write;
+
+	assign #1 mem_clock = clock; // delay to allow set-up time
 
 	// internal variables
 	reg[7:0] accumulator;
@@ -48,7 +50,6 @@ module ctrl(
 		register_file[6] <= 6;
 		register_file[7] <= 0;
 
-		mem_clock <= 0;
 		mem_write <= 0;
 	end
 
@@ -67,9 +68,6 @@ module ctrl(
 	                div_complete);
 
 	always @(negedge clock) begin
-		// general cleanup
-		mem_clock <= 0;
-
 		// finish divide or instruction/data fetch
 		if (stall_for_div) begin
 			exec_instr <= 8'hFF; // no-op, so we don't do anything rash
@@ -87,12 +85,8 @@ module ctrl(
 	end
 
 	always @(posedge clock) begin
-		// reset from last cycle
-		//branch <= 0;
-
 		// start instruction fetch
 		mem_write <= 0;
-		mem_clock <= 1;
 		address <= register_file[7];
 
 		// start instruction execute

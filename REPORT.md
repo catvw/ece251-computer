@@ -183,6 +183,25 @@ accessed on every instruction. After a few deep breaths, I decided to tackle
 each instruction class in turn to see whether anything could be done.
 
 ## Stages and Model
+### Instruction Fetch
+**Rising-edge**: the instruction memory address register is assigned the value
+of the program counter, and the memory clock is set high.
+
+**Falling-edge**: the result of the memory access is read into the `exec_instr`
+register, and the value of the register specified by the instruction's argument
+is read into the `exec_register` register.
+
+### Instruction Execute
+**Rising-edge**: the accumulator is assigned its new value, depending on the
+value of `exec_instr`.
+
+**Falling-edge**: nothing yet.
+
+## ALU Instructions
+ALU operations pipeline pretty easily, as it happens: the accumulator is simply
+provided as an ALU argument and assigned the value of the ALU output in the
+same cycle, which produces the right result by the falling clock edge. Since
+there's no memory access, no other control logic is necessary.
 
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®

@@ -180,6 +180,19 @@ module ctrl(
 				accumulator <= ALU_result;
 			end
 
+			4'b1100: begin // SET
+				$display("  SET %b", exec_instr[3:0]);
+				accumulator[3:0] <= exec_instr[3:0];
+			end
+
+			4'b1101: begin // MOV
+				$display("  MOV %b", exec_instr[3:0]);
+				if (exec_instr[3]) // outbound to registers
+					register_file[exec_instr[2:0]] <= accumulator;
+				else
+					accumulator <= exec_register;
+			end
+
 			/*
 			4'b0100: begin // B
 				$display("  B %b", next_instr[3:0]);
@@ -224,18 +237,6 @@ module ctrl(
 				$finish;
 			end
 
-			4'b1100: begin // SET
-				$display("  SET %b", next_instr[3:0]);
-				accumulator[3:0] <= next_instr[3:0];
-			end
-
-			4'b1101: begin // MOV
-				$display("  MOV %b", next_instr[3:0]);
-				if (acc_to_mem)
-					register_file[next_instr[2:0]] <= accumulator;
-				else
-					accumulator <= register_file[next_instr[2:0]];
-			end
 
 			4'b1110: begin // LD/ST
 				$display("  LD/ST %b", next_instr[3:0]);

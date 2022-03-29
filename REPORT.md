@@ -193,7 +193,7 @@ read into the `exec_register` register, and the memory clock is set low.
 
 ### Instruction Execute
 **Rising-edge**: the accumulator is assigned its new value, depending on the
-value of `exec_instr`.
+value of `exec_instr`, and the target register is written (if applicable).
 
 **Falling-edge**: nothing yet.
 
@@ -202,6 +202,15 @@ ALU operations pipeline pretty easily, as it happens: the accumulator is simply
 provided as an ALU argument and assigned the value of the ALU output in the
 same cycle, which produces the right result by the falling clock edge. Since
 there's no memory access, no other control logic is necessary.
+
+## `SET` and `MOV`
+`SET`'s implementation is even simpler than the ALU instructions, as it has no
+memory access needs. `MOV`, however, has the capability to write to registers
+as well as read them, causing a potential data hazard if the same register is
+read immediately after it is written. I avoided calamity by resolving register
+writes on the leading clock edge and register reads for the *next* instruction
+on the falling clock edge, which ensures that all registers are in the correct
+state before they are requested again.
 
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®

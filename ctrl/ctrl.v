@@ -1,3 +1,5 @@
+`include "../alu/alu.v"
+
 module ctrl(
 		input clock,
 
@@ -33,6 +35,7 @@ module ctrl(
 	);
 
 	// external variables
+	/*
 	wire clock;
 
 	wire[7:0] A, B;
@@ -46,6 +49,7 @@ module ctrl(
 	wire div_clock;
 	reg div_start;
 	wire div_complete;
+	*/
 
 	reg[7:0] address;
 	wire[7:0] from_mem;
@@ -53,6 +57,7 @@ module ctrl(
 	reg mem_clock;
 	reg mem_write;
 
+	/*
 	wire[7:0] inst_address;
 	wire[7:0] inst_offset;
 	wire[7:0] new_inst_address;
@@ -100,6 +105,10 @@ module ctrl(
 		div_active = 0;
 		//$monitor("0x%h: %b (%d)", register_file[7], next_instr, next_instr);
 	end
+	*/
+
+	reg[7:0] accumulator;
+	reg[7:0] register_file[7:0];
 
 	reg[7:0] fetch_address;
 	reg[7:0] fetch_instr;
@@ -119,36 +128,44 @@ module ctrl(
 		register_file[4] <= 4;
 		register_file[5] <= 5;
 		register_file[6] <= 6;
+		register_file[7] <= 0;
+
+		mem_clock <= 0;
+		mem_write <= 0;
 	end
+
+	wire[2:0] ALU_op = exec_instr[5:3];
+	wire[7:0] ALU_result;
+	wire ALU_Cout;
+	alu general_alu(accumulator, exec_register, ALU_op, ALU_result, ALU_Cout);
 
 	always @(negedge clock) begin
 		// handle clock cleanup
 		mem_clock <= 0;
 
-		// transfer pipeline registers
-		fetch_address <= register_file[7];
+		// finish instruction fetch
 		exec_instr <= from_mem;
+		exec_register <= register_file[from_mem[2:0]];
+
+		$display("  accumulator is %b (%d)", accumulator, accumulator);
 	end
 
 	always @(posedge clock) begin
 		// reset from last cycle
 		//branch <= 0;
 
-		// set up instruction fetch
+		// start instruction fetch
 		mem_write <= 0;
 		mem_clock <= 1;
-		address <= fetch_address;
+		address <= register_file[7];
 
-		// set up register file read
-		exec_register <= register_file[exec_instr[2:0]];
-
-		// set up instruction execute
+		// start instruction execute
 		$display("0x%h: %d (%b)", address, exec_instr, exec_instr);
 
 		case(exec_instr[7:4])
 			4'b0000: begin // ADD/SUB
 				$display("  ADD/SUB %b", exec_instr[3:0]);
-				accumulator <= accumulator + exec_register;
+				accumulator <= ALU_result;
 			end
 			/*
 			4'b0001: begin // AND/OR
@@ -251,9 +268,6 @@ module ctrl(
 				$finish;
 			end*/
 		endcase
-
-		#1;
-		$display("  accumulator is %b (%d)", accumulator, accumulator);
 
 		//#1;
 		register_file[7] = register_file[7] + 1; // TODO: use the ALU for this

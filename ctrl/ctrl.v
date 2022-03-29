@@ -38,6 +38,7 @@ module ctrl(
 		fetch_address <= 8'b0;
 		fetch_instr <= 8'hFF;
 		exec_instr <= 8'hFF;
+		stall_for_div <= 0;
 		stall_for_load_store <= 0;
 
 		accumulator <= 8'b0;
@@ -67,16 +68,18 @@ module ctrl(
 	div general_div(accumulator, exec_register, clock, stall_for_div, quotient,
 	                div_complete);
 
+	// multiplexer for next instruction to execute
+	wire[7:0] next_exec =
+		(stall_for_div | stall_for_load_store) ? 8'hFF : from_mem;
+
 	always @(negedge clock) begin
 		// finish divide or instruction/data fetch
-		if (stall_for_div) begin
-			exec_instr <= 8'hFF; // no-op, so we don't do anything rash
-		end else if (stall_for_load_store) begin
+		exec_instr <= next_exec;
+
+		if (stall_for_load_store) begin
 			if (~exec_instr[3]) accumulator <= from_mem;
-			exec_instr <= 8'hFF; // no-op, so we don't do anything rash
 			stall_for_load_store <= 0;
-		end else begin
-			exec_instr <= from_mem;
+		end else if (~stall_for_div) begin
 			exec_register <= register_file[from_mem[2:0]];
 			register_file[7] = register_file[7] + 1; // TODO: use the ALU for this
 		end

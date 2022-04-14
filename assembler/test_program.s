@@ -1,0 +1,4 @@
+ADD R0
+SUB R1
+MUL R2
+MOV >R3

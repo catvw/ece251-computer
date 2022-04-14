@@ -72,7 +72,7 @@ while (<$input>) {
 	$bin_instr |= $reg if ($instr ~~ @takes_register);
 	$bin_instr |= $imm if ($instr ~~ @takes_immediate);
 
-	printf "%02x\n", $bin_instr;
+	printf $output pack 'c', $bin_instr;
 }
 
 close $input;

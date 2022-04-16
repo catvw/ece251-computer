@@ -59,33 +59,24 @@ while (<$input>) {
 	s#//[^\n]*$##;
 
 	# split the instruction into pieces
-	my ($instr, $dir, $arg) = m/^\s*(\w+)\s+([<>]?)(\S*)/;
+	my ($name, $dir, $arg) = m/^\s*(\w+)\s+([<>]?)(\S*)/;
 
-	if ($instr) {
-		my $bin_instr = $instructions{lc $instr};
-
+	if ($name) {
 		my $reg;
 		my $imm;
 		if ($arg) {
 			# extract immediate or register spec
 			($reg) = ($arg =~ m/r(\d)/);
 			($imm) = ($arg =~ m/#(-?\d)/);
-
-			# do a four-bit two's-comp conversion if needed
-			$imm += 16 if ($imm && $imm < 0);
 		}
-
-		$bin_instr |= $reg if grep { $_ eq $instr } @takes_register;
-		$bin_instr |= $imm if grep { $_ eq $instr } @takes_immediate;
-		$bin_instr |= $directions{$dir}
-			if grep { $_ eq $instr } @takes_direction;
 
 		my $next_instr = {
 			address => $address,
-			name => $instr,
+			name => $name,
 			dir => $dir,
 			arg => $arg,
-			binary => $bin_instr,
+			reg => $reg,
+			imm => $imm,
 		};
 		push @program, $next_instr;
 
@@ -95,7 +86,7 @@ while (<$input>) {
 close $input;
 undef $address;
 
-# write to output
+# assemble and write to output
 my $output;
 open $output, '>:raw', $output_file or die "could not open $output_file"
 	if $output_file;
@@ -104,7 +95,18 @@ foreach (@program) {
 	my $name = $_->{name};
 	my $dir = $_->{dir};
 	my $arg = $_->{arg};
-	my $binary = $_->{binary};
+	my $reg = $_->{reg};
+	my $imm = $_->{imm};
+
+	# get base binary instruction
+	my $binary = $instructions{lc $name};
+
+	# do a four-bit two's-comp conversion if needed
+	$imm += 16 if ($imm && $imm < 0);
+
+	$binary |= $reg if grep { $_ eq $name } @takes_register;
+	$binary |= $imm if grep { $_ eq $name } @takes_immediate;
+	$binary |= $directions{$dir} if grep { $_ eq $name } @takes_direction;
 
 	if ($output) {
 		print $output pack 'C', $binary;

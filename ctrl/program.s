@@ -9,4 +9,9 @@ loop:
 	add r0
 	bnn loop
 
+	// store and load
+	st [r0]
+	set #0
+	ld [r0]
+
 	hlt

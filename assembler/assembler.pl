@@ -72,7 +72,7 @@ while (<$input>) {
 
 	# split the instruction into pieces
 	my ($label, $name, $dir, $arg) =
-		m/^\s*(?:(\w+):)?(?:\s*(\w+)\s+([<>]?)(\S*))?/;
+		m/^\s*(?:(\w+):)?(?:\s*(\w+)\s+\[?([<>]?)(\S*))?\]?/;
 
 	$labels{$label} = $address if $label;
 

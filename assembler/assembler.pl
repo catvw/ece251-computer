@@ -56,6 +56,9 @@ open $output, '>:raw', $output_file or die "could not open $output_file"
 
 my $address = 0;
 while (<$input>) {
+	# remove comments
+	s#//[^\n]*$##;
+
 	# split the instruction into pieces
 	my ($instr, $dir, $arg) = m/^\s*(\w+)\s+([<>]?)(\S*)/;
 

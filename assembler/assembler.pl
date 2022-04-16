@@ -50,10 +50,9 @@ print "arguments: <input> [output]\n" and exit
 my ($input_file, $output_file) = @ARGV;
 
 open my $input, '<', $input_file or die "could not open $input_file"; 
-my $output;
-open $output, '>:raw', $output_file or die "could not open $output_file"
-	if $output_file;
 
+# read and tokenize input
+my @program = ();
 my $address = 0;
 while (<$input>) {
 	# remove comments
@@ -81,16 +80,37 @@ while (<$input>) {
 		$bin_instr |= $directions{$dir}
 			if grep { $_ eq $instr } @takes_direction;
 
-		if ($output) {
-			print $output pack 'C', $bin_instr;
-		} else {
-			printf "%02x: \x1b[1m%-7s\x1b[0m -> %02x\n",
-				$address, "$instr $dir$arg", $bin_instr;
-		}
+		my $next_instr = {
+			address => $address,
+			name => $instr,
+			dir => $dir,
+			arg => $arg,
+			binary => $bin_instr,
+		};
+		push @program, $next_instr;
 
 		++$address;
 	}
 }
-
 close $input;
+undef $address;
+
+# write to output
+my $output;
+open $output, '>:raw', $output_file or die "could not open $output_file"
+	if $output_file;
+foreach (@program) {
+	my $address = $_->{address};
+	my $name = $_->{name};
+	my $dir = $_->{dir};
+	my $arg = $_->{arg};
+	my $binary = $_->{binary};
+
+	if ($output) {
+		print $output pack 'C', $binary;
+	} else {
+		printf "%02x: \x1b[1m%-7s\x1b[0m -> %02x\n",
+			$address, "$name $dir$arg", $binary;
+	}
+}
 close $output if $output;

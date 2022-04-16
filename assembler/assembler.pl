@@ -73,9 +73,10 @@ while (<$input>) {
 			$imm += 16 if ($imm && $imm < 0);
 		}
 
-		$bin_instr |= $reg if ($instr ~~ @takes_register);
-		$bin_instr |= $imm if ($instr ~~ @takes_immediate);
-		$bin_instr |= $directions{$dir} if ($instr ~~ @takes_direction);
+		$bin_instr |= $reg if grep { $_ eq $instr } @takes_register;
+		$bin_instr |= $imm if grep { $_ eq $instr } @takes_immediate;
+		$bin_instr |= $directions{$dir}
+			if grep { $_ eq $instr } @takes_direction;
 
 		if ($output) {
 			print $output pack 'C', $bin_instr;

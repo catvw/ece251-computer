@@ -244,7 +244,7 @@ value to the program counter. Even more fortuitously, those assignments both
 use the value `address + [branch offset]`, as the program counter is
 incremented on the next falling edge! Sometimes things just work out.
 
-# `MUL` and `DIV`
+## `MUL` and `DIV`
 `MUL` is as simple as an ALU instruction; it just has an extra switch to use
 dedicated multiplication hardware.
 
@@ -252,6 +252,24 @@ dedicated multiplication hardware.
 processor is stalled with `stall_for_div` set and no-ops are executed until
 `div_complete` indicates that the result of the division is ready to be read
 into the accumulator. Once that happens, execution resumes as usual.
+
+# Assembler
+Since I didn't feel like hand-assembling every damn instruction (and wanted an
+excuse to polish my rusty Perl skills), I decided to write an assembler for
+this project. Invocation is as follows:
+```
+./assembler.pl <input file> [output file]
+```
+When invoked with an output file, the assembler will convert the input file
+into binary machine code and write it out. When invoked without an output file,
+the assembler will print a pretty representation of the program in both machine
+code and text to standard output.
+
+Since this project is mainly focused on the computer-architecture side of
+things, the assembler *does virtually no grammar checking*. If you write
+programs in the same format as my example code and follow the grammar laid out
+above, things will work fine, but do *not* expect it to catch your errors very
+intelligently, or at all!
 
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®

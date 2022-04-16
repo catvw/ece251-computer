@@ -81,8 +81,8 @@ while (<$input>) {
 		my $imm;
 		if ($arg) {
 			# extract immediate or register spec
-			($reg) = ($arg =~ m/r(\d)/);
-			($imm) = ($arg =~ m/#(-?\d)/);
+			($reg) = ($arg =~ m/r(\d+)/);
+			($imm) = ($arg =~ m/#(-?\d+)/);
 		}
 
 		my $next_instr = {

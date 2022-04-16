@@ -37,7 +37,11 @@ my @takes_direction = (
 );
 
 my @takes_immediate = (
-	'lsl', 'lsr', 'set', 'b', 'bz', 'bnn', # TODO: remove branches
+	'lsl', 'lsr', 'set',
+);
+
+my @takes_label = (
+	'b', 'bz', 'bnn',
 );
 
 my %directions = (
@@ -49,17 +53,28 @@ print "arguments: <input> [output]\n" and exit
 	unless ($#ARGV == 0 || $#ARGV == 1);
 my ($input_file, $output_file) = @ARGV;
 
-open my $input, '<', $input_file or die "could not open $input_file"; 
+open my $input, '<', $input_file or die "could not open $input_file";
+
+# take two's-complement of a nybble
+sub nybble_2s {
+	my $n = shift;
+	return $n + 16 if ($n && $n < 0);
+	return $n;
+}
 
 # read and tokenize input
 my @program = ();
+my %labels = ();
 my $address = 0;
 while (<$input>) {
 	# remove comments
 	s#//[^\n]*$##;
 
 	# split the instruction into pieces
-	my ($name, $dir, $arg) = m/^\s*(\w+)\s+([<>]?)(\S*)/;
+	my ($label, $name, $dir, $arg) =
+		m/^\s*(?:(\w+):)?(?:\s*(\w+)\s+([<>]?)(\S*))?/;
+
+	$labels{$label} = $address if $label;
 
 	if ($name) {
 		my $reg;
@@ -76,7 +91,7 @@ while (<$input>) {
 			dir => $dir,
 			arg => $arg,
 			reg => $reg,
-			imm => $imm,
+			imm => $imm
 		};
 		push @program, $next_instr;
 
@@ -102,17 +117,27 @@ foreach (@program) {
 	my $binary = $instructions{lc $name};
 
 	# do a four-bit two's-comp conversion if needed
-	$imm += 16 if ($imm && $imm < 0);
+	$imm = nybble_2s($imm);
 
 	$binary |= $reg if grep { $_ eq $name } @takes_register;
 	$binary |= $imm if grep { $_ eq $name } @takes_immediate;
 	$binary |= $directions{$dir} if grep { $_ eq $name } @takes_direction;
 
+	if (grep { $_ eq $name } @takes_label) {
+		my $jump_diff = nybble_2s($labels{$arg} - $address);
+
+		if ($jump_diff >= 0 && $jump_diff <= 15) {
+			$binary |= $jump_diff;
+		} else {
+			die "$address: distance to \"$arg\" is $jump_diff!";
+		}
+	}
+
 	if ($output) {
 		print $output pack 'C', $binary;
 	} else {
-		printf "%02x: \x1b[1m%-7s\x1b[0m -> %02x\n",
-			$address, "$name $dir$arg", $binary;
+		printf "#%02x: %02x | \x1b[1m%s\x1b[0m\n",
+			$address, $binary, "$name $dir$arg";
 	}
 }
 close $output if $output;

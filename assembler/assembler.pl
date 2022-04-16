@@ -1,4 +1,6 @@
 #!/usr/bin/perl
+use strict;
+use warnings;
 
 my %instructions = (
 	'add' => 0b00_000_000,
@@ -27,8 +29,7 @@ my %instructions = (
 );
 
 my @takes_register = (
-	'add', 'sub', 'and', 'or' , 'lsl', 'lsr', 'not', 'xor', 'mul', 'div', 'ld',
-	'st', 'mov',
+	'add', 'sub', 'and', 'or' , 'not', 'xor', 'mul', 'div', 'ld', 'st', 'mov',
 );
 
 my @takes_direction = (
@@ -44,36 +45,45 @@ my %directions = (
 	'<' => 0b0000_0_000,
 );
 
-print "arguments: <input> <output>\n" and exit unless $#ARGV == 1;
+print "arguments: <input> [output]\n" and exit
+	unless ($#ARGV == 0 || $#ARGV == 1);
 my ($input_file, $output_file) = @ARGV;
 
 open my $input, '<', $input_file or die "could not open $input_file"; 
-open my $output, '>:raw', $output_file or die "could not open $output_file";
+my $output;
+open $output, '>:raw', $output_file or die "could not open $output_file"
+	if $output_file;
 
 while (<$input>) {
 	# split the instruction into pieces
-	my ($instr, $dir, $arg) = m/^\s*(\w+)\s+([<>])?((#-?)?\w+)?/;
+	my ($instr, $dir, $arg) = m/^\s*(\w+)\s+([<>]?)(\S*)/;
 
-	# convert all to lower case
-	$instr = lc($instr);
-	$direction = lc($direction);
-	$argument = lc($argument);
 
-	# extract immediate or register spec
-	my ($reg) = ($arg =~ m/r(\d)/);
-	my ($imm) = ($arg =~ m/#(-?\d)/);
+	if ($instr) {
+		my $bin_instr = $instructions{lc $instr};
 
-	# do a four-bit two's-comp conversion if needed
-	$imm += 16 if ($imm < 0);
+		my $reg;
+		my $imm;
+		if ($arg) {
+			# extract immediate or register spec
+			($reg) = ($arg =~ m/r(\d)/);
+			($imm) = ($arg =~ m/#(-?\d)/);
 
-	my $bin_instr = $instructions{$instr};
+			# do a four-bit two's-comp conversion if needed
+			$imm += 16 if ($imm && $imm < 0);
+		}
 
-	$bin_instr |= $direction{$dir} if ($instr ~~ @takes_direction);
-	$bin_instr |= $reg if ($instr ~~ @takes_register);
-	$bin_instr |= $imm if ($instr ~~ @takes_immediate);
+		$bin_instr |= $reg if ($instr ~~ @takes_register);
+		$bin_instr |= $imm if ($instr ~~ @takes_immediate);
+		$bin_instr |= $directions{$dir} if ($instr ~~ @takes_direction);
 
-	printf $output pack 'c', $bin_instr;
+		if ($output) {
+			print $output pack 'C', $bin_instr;
+		} else {
+			printf "%s %s%s\t-> %02x\n", $instr, $dir, $arg, $bin_instr;
+		}
+	}
 }
 
 close $input;
-close $output;
+close $output if $output;

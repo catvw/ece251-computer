@@ -54,10 +54,10 @@ my $output;
 open $output, '>:raw', $output_file or die "could not open $output_file"
 	if $output_file;
 
+my $address = 0;
 while (<$input>) {
 	# split the instruction into pieces
 	my ($instr, $dir, $arg) = m/^\s*(\w+)\s+([<>]?)(\S*)/;
-
 
 	if ($instr) {
 		my $bin_instr = $instructions{lc $instr};
@@ -81,8 +81,11 @@ while (<$input>) {
 		if ($output) {
 			print $output pack 'C', $bin_instr;
 		} else {
-			printf "%s %s%s\t-> %02x\n", $instr, $dir, $arg, $bin_instr;
+			printf "%02x: \x1b[1m%-7s\x1b[0m -> %02x\n",
+				$address, "$instr $dir$arg", $bin_instr;
 		}
+
+		++$address;
 	}
 }
 

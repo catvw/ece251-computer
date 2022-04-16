@@ -86,6 +86,7 @@ while (<$input>) {
 		}
 
 		my $next_instr = {
+			line_number => $.,
 			address => $address,
 			name => $name,
 			dir => $dir,
@@ -106,6 +107,7 @@ my $output;
 open $output, '>:raw', $output_file or die "could not open $output_file"
 	if $output_file;
 foreach (@program) {
+	my $line_number = $_->{line_number};
 	my $address = $_->{address};
 	my $name = $_->{name};
 	my $dir = $_->{dir};
@@ -124,12 +126,12 @@ foreach (@program) {
 	$binary |= $directions{$dir} if grep { $_ eq $name } @takes_direction;
 
 	if (grep { $_ eq $name } @takes_label) {
-		my $jump_diff = nybble_2s($labels{$arg} - $address);
+		my $jump_diff = $labels{$arg} - $address;
 
-		if ($jump_diff >= 0 && $jump_diff <= 15) {
-			$binary |= $jump_diff;
+		if ($jump_diff >= -8 && $jump_diff <= 7) {
+			$binary |= nybble_2s($jump_diff);
 		} else {
-			die "$address: distance to \"$arg\" is $jump_diff!";
+			die "line $line_number: distance to \"$arg\" is $jump_diff!";
 		}
 	}
 

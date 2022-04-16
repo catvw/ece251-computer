@@ -1,2 +1,2 @@
 #!/bin/bash
-xxd -r program.hex program.bin
+../assembler/assembler.pl program.s program.bin

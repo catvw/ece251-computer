@@ -40,25 +40,7 @@ module ctrl(
 	wire is_load_store; // only stalls for one cycle, so all we need to check
 	wire stall = stall_for_div | is_load_store;
 
-	initial begin
-		fetch_address <= 8'b0;
-		fetch_instr <= 8'hFF;
-		exec_instr <= 8'hFF;
-		stall_for_div <= 0;
-
-		accumulator <= 8'b0;
-		register_file[0] <= 1;
-		register_file[1] <= 2;
-		register_file[2] <= 3;
-		register_file[3] <= 5;
-		register_file[4] <= 7;
-		register_file[5] <= 11;
-		register_file[6] <= 13;
-		register_file[7] <= 8'hFF; // so that the *next* address is 0
-
-		mem_write <= 0;
-	end
-
+	// external module hookups
 	wire[2:0] ALU_op = exec_instr[5:3];
 	wire[7:0] ALU_result;
 	wire ALU_Cout;
@@ -147,6 +129,25 @@ module ctrl(
 	wire immed_adder_Cout;
 	eight_adder immed_adder(accumulator, sign_ext_immediate, 1'b0,
 	                        acc_plus_immed, immed_adder_Cout);
+
+	initial begin
+		fetch_address <= 8'b0;
+		fetch_instr <= 8'hFF;
+		exec_instr <= 8'hFF;
+		stall_for_div <= 0;
+
+		accumulator <= 8'b0;
+		register_file[0] <= 1;
+		register_file[1] <= 2;
+		register_file[2] <= 3;
+		register_file[3] <= 5;
+		register_file[4] <= 7;
+		register_file[5] <= 11;
+		register_file[6] <= 13;
+		register_file[7] <= 8'hFF; // so that the *next* address is 0
+
+		mem_write <= 0;
+	end
 
 	always @(negedge clock) begin
 		// finish divide or instruction/data fetch

@@ -238,11 +238,9 @@ bubble, and so the control logic is not terribly complex:
 ## `B`, `BZ`, and `BNN`
 As it turns out, this architecture permits no-delay branching! Since
 next-instruction loads are set up at the same time as instruction execution,
-and since the branch conditions only depend on the current value of the
-accumulator, they can simply hijack the `address` register and assign a new
-value to the program counter. Even more fortuitously, those assignments both
-use the value `address + [branch offset] + [advance if not stalled]`! Sometimes
-things just work out.
+the address of the next instruction to load is just `PC + [branch offset] +
+[advance if not stalled]`, which may just be assigned to `address` and the
+program counter. Very convenient.
 
 ## `MUL` and `DIV`
 `MUL` is as simple as an ALU instruction; it just has an extra switch to use

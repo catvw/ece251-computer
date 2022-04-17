@@ -183,22 +183,14 @@ module ctrl(
 
 			4'b0100: begin
 				$display("  B %b", exec_instr[3:0]);
-				// hijack instruction load and program counter addition
-				address <= address + sign_ext_branch_diff;
 			end
 
 			4'b0101: begin
 				$display("  BZ %b", exec_instr[3:0]);
-				if (accumulator == 0) begin
-					address <= address + sign_ext_branch_diff;
-				end
 			end
 
 			4'b0110: begin
 				$display("  BNN %b", exec_instr[3:0]);
-				if (~accumulator[7]) begin
-					address <= address + sign_ext_branch_diff;
-				end
 			end
 
 			4'b1000: begin

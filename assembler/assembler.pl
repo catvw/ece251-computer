@@ -118,7 +118,7 @@ while (<$input>) {
 
 			push @program, $addr_instr;
 			$address += 2;
-		} elsif ($constant) {
+		} elsif (defined $constant) {
 			# push on a constant-setting instruction
 			my $const_instr = {
 				line_number => $.,

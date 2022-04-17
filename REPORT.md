@@ -241,8 +241,8 @@ next-instruction loads are set up at the same time as instruction execution,
 and since the branch conditions only depend on the current value of the
 accumulator, they can simply hijack the `address` register and assign a new
 value to the program counter. Even more fortuitously, those assignments both
-use the value `address + [branch offset]`, as the program counter is
-incremented on the next falling edge! Sometimes things just work out.
+use the value `address + [branch offset] + [advance if not stalled]`! Sometimes
+things just work out.
 
 ## `MUL` and `DIV`
 `MUL` is as simple as an ALU instruction; it just has an extra switch to use

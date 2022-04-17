@@ -55,7 +55,7 @@ module ctrl(
 		register_file[4] <= 4;
 		register_file[5] <= 5;
 		register_file[6] <= 6;
-		register_file[7] <= 0;
+		register_file[7] <= 8'hFF; // so that the *next* address is 0
 
 		mem_write <= 0;
 	end
@@ -124,14 +124,16 @@ module ctrl(
 		end
 
 		exec_register <= register_file[from_mem[2:0]];
-		`PC <= next_pc;
+		$display("  neg: advance=%d next_pc=%d", advance_by_one, next_pc);
 		$display("  accumulator is %b (%d)", accumulator, accumulator);
 	end
 
 	always @(posedge clock) begin
 		// start instruction fetch
 		mem_write <= 0;
-		address <= register_file[7];
+		$display("  pos: PC=%d advance=%d next_pc=%d ", `PC, advance_by_one, next_pc);
+		address <= next_pc;
+		`PC <= next_pc;
 
 		// start instruction execute
 		$display("0x%h: %d (%b)", address, exec_instr, exec_instr);

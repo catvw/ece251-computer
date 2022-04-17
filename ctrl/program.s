@@ -1,8 +1,8 @@
 // test program for branching; i love my new assembler!
 	b forward
-	set #15
-	lsl #4
-	set #15
+	no
+	no
+	no
 
 forward:
 	// set r0 to 1
@@ -23,4 +23,6 @@ loop:
 	no
 	no
 end:
+	mov <r7
+	ld [r6]
 	hlt

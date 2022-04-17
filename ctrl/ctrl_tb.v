@@ -37,6 +37,7 @@ module ctrl_tb;
 	always #20 clock = !clock;
 
 	initial begin
-		clock <= 1; // and we're away!
+		#1 clock <= 1; // and we're away!
+		//#400 $finish;
 	end
 endmodule

@@ -87,6 +87,10 @@ module ctrl(
 	              ~(exec_instr[6] |
 	                exec_instr[5] |
 	                exec_instr[4]);
+	wire is_div = exec_instr[7] &
+	              ~exec_instr[6] &
+	              ~exec_instr[5] &
+	              exec_instr[4];
 	wire is_set = exec_instr[7] &
 	              exec_instr[6] &
 	              ~exec_instr[5] &
@@ -153,6 +157,7 @@ module ctrl(
 			(is_move & ~exec_instr[3]) ? exec_register :
 			is_mul ? product :
 			is_set ? {accumulator[7:4], exec_instr[3:0]} :
+			stall_for_div & div_complete ? quotient :
 			accumulator;
 
 		// write to registers if necessary
@@ -163,6 +168,9 @@ module ctrl(
 		mem_write <= is_load_store & exec_instr[3];
 		address <= is_load_store ? exec_register : next_pc;
 		to_mem <= accumulator; // will do nothing if mem_write is zero
+
+		// update division stall flag
+		stall_for_div <= is_div | (stall_for_div & ~div_complete);
 
 		$display("0x%h: %d (%b)", address, exec_instr, exec_instr);
 		case(exec_instr[7:4])
@@ -209,8 +217,6 @@ module ctrl(
 
 			4'b1001: begin
 				$display("  DIV %b", exec_instr[3:0]);
-				// stall and start dividing accumulator by exec_register
-				stall_for_div <= 1;
 			end
 
 			4'b1111: begin
@@ -229,8 +235,6 @@ module ctrl(
 		endcase
 
 		if (stall_for_div & div_complete) begin
-			stall_for_div <= 0;
-			accumulator <= quotient;
 			$display("  divide finished");
 		end
 	end

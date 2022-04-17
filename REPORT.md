@@ -262,6 +262,26 @@ quantity, and one carry input used instead for a conditional one-byte advance.
 Since instructions are only one byte long, this is possible and saves some
 multiplexers.
 
+This was surprisingly difficult to get right; getting the pipeline to load one
+instruction ahead of the current one while still having the program counter in
+an expected position took some thinking. The end solution for it can be found
+in the code, but it was *not* obvious how to get there.
+
+As it stands, `next_pc` holds the next value of the program counter based on
+the current counter and whether we're about to branch. That means it has to
+know the result of an upcoming branch, that branch's offset, *and* whether we
+have to stall for a load/store; this was accomplished by using both carry-in
+and the usual 8-bit addends for a single adder.
+
+The good news is that, once `next_pc` is set up, it can also be used for the
+next value of `address`, as we want to read that instruction into memory next.
+This makes for a pretty compact implementation in hardware.
+
+# Register Initialization
+For my convenience writing this computer, I set the first six registers to one
+and the first six prime numbers; given how small this computer is, that might
+actually be an efficiency-gaining move in hardware, too.
+
 # Assembler
 Since I didn't feel like hand-assembling every damn instruction (and wanted an
 excuse to polish my rusty Perl skills), I decided to write an assembler for

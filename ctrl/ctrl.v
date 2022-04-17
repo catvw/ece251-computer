@@ -47,13 +47,13 @@ module ctrl(
 		stall_for_div <= 0;
 
 		accumulator <= 8'b0;
-		register_file[0] <= 0;
-		register_file[1] <= 1;
-		register_file[2] <= 2;
-		register_file[3] <= 3;
-		register_file[4] <= 4;
-		register_file[5] <= 5;
-		register_file[6] <= 6;
+		register_file[0] <= 1;
+		register_file[1] <= 2;
+		register_file[2] <= 3;
+		register_file[3] <= 5;
+		register_file[4] <= 7;
+		register_file[5] <= 11;
+		register_file[6] <= 13;
 		register_file[7] <= 8'hFF; // so that the *next* address is 0
 
 		mem_write <= 0;
@@ -172,6 +172,7 @@ module ctrl(
 		// update division stall flag
 		stall_for_div <= is_div | (stall_for_div & ~div_complete);
 
+		// print out fun stuff (and also run halt/illegal)
 		$display("0x%h: %d (%b)", address, exec_instr, exec_instr);
 		case(exec_instr[7:4])
 			4'b0000: begin

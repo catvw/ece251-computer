@@ -1,8 +1,13 @@
-	sel #15
-	seh #15
-	adi #-1
-	adi #4
-	mul r6
-	div r2
+	sel #5
+	seh #0
+	mov >r0
+
 	no
+	no
+	no
+	no
+	no
+
+	br r0
+	ba r0
 	hlt

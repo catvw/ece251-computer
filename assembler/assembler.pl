@@ -18,6 +18,8 @@ my %instructions = (
 	'b'   => 0b01_00_0000,
 	'bz'  => 0b01_01_0000,
 	'bnn' => 0b01_10_0000,
+	'ba'  => 0b01_11_0_000,
+	'br'  => 0b01_11_1_000,
 
 	'ld'  => 0b1110_0_000,
 	'st'  => 0b1110_1_000,
@@ -33,6 +35,7 @@ my %instructions = (
 
 my @takes_register = (
 	'add', 'sub', 'and', 'or' , 'not', 'xor', 'mul', 'div', 'ld', 'st', 'mov',
+	'ba', 'br'
 );
 
 my @takes_direction = (

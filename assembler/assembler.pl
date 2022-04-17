@@ -78,31 +78,62 @@ while (<$input>) {
 
 	# split the instruction into pieces
 	my ($label, $name, $dir, $arg) =
-		m/^\s*(?:(\w+):)?(?:\s*(\w+)\s+\[?([<>]?)(\S*))?\]?/;
+		m/^\s*(?:(\w+):)?(?:\s*(#?\w+)\s+([<>]?)(\[?\S*)\]?)?/;
 
 	$labels{$label} = $address if $label;
 
 	if ($name) {
-		my $reg;
-		my $imm;
-		if ($arg) {
-			# extract immediate or register spec
-			($reg) = ($arg =~ m/r(\d+)/);
-			($imm) = ($arg =~ m/#(-?\d+)/);
+		# extract potential numeric constant (like #66)
+		my ($constant) = ($name =~ m/#(\d+)/);
+
+		if (exists $instructions{$name}) {
+			my $reg;
+			my $imm;
+			if ($arg) {
+				# extract immediate or register spec
+				($reg) = ($arg =~ m/r(\d+)/);
+				($imm) = ($arg =~ m/#(-?\d+)/);
+			}
+
+			my $next_instr = {
+				line_number => $.,
+				address => $address,
+				name => $name,
+				dir => $dir,
+				arg => $arg,
+				reg => $reg,
+				imm => $imm,
+			};
+
+			push @program, $next_instr;
+			++$address;
+		} elsif ($name eq "addr") {
+			# push on a special-looking instruction
+			my $addr_instr = {
+				line_number => $.,
+				address => $address,
+				name => $name,
+				arg => $arg,
+			};
+
+			push @program, $addr_instr;
+			$address += 2;
+		} elsif ($constant) {
+			# push on a constant-setting instruction
+			my $const_instr = {
+				line_number => $.,
+				address => $address,
+				name => "#$constant",
+				dir => '',
+				arg => '',
+				reg => '',
+				imm => '',
+				constant => $constant,
+			};
+
+			push @program, $const_instr;
+			++$address;
 		}
-
-		my $next_instr = {
-			line_number => $.,
-			address => $address,
-			name => $name,
-			dir => $dir,
-			arg => $arg,
-			reg => $reg,
-			imm => $imm
-		};
-		push @program, $next_instr;
-
-		++$address;
 	}
 }
 close $input;
@@ -113,13 +144,50 @@ my $output;
 open $output, '>:raw', $output_file or die "could not open $output_file"
 	if $output_file;
 foreach (@program) {
-	my $line_number = $_->{line_number};
-	my $address = $_->{address};
-	my $name = $_->{name};
-	my $dir = $_->{dir};
-	my $arg = $_->{arg};
-	my $reg = $_->{reg};
-	my $imm = $_->{imm};
+	if ($_->{name} eq 'addr') {
+		# get the referenced address
+		my $ref_addr = $labels{$_->{arg}};
+
+		# write a sel/seh pair to load that address
+		my $sel_imm = $ref_addr & 0xf;
+		my $sel_instr = {
+			line_number => $_->{line_number},
+			address => $_->{address},
+			name => 'sel',
+			dir => '',
+			arg => "#$sel_imm",
+			reg => '',
+			imm => $sel_imm,
+		};
+
+		my $seh_imm = $ref_addr >> 4;
+		my $seh_instr = {
+			line_number => $_->{line_number},
+			address => $_->{address} + 1,
+			name => 'seh',
+			dir => '',
+			arg => "#$seh_imm",
+			reg => '',
+			imm => $seh_imm,
+		};
+
+		write_instr ($sel_instr);
+		write_instr ($seh_instr);
+	} else {
+		write_instr ($_);
+	}
+}
+
+sub write_instr {
+	my $instr = shift;
+
+	my $line_number = $instr->{line_number};
+	my $address = $instr->{address};
+	my $name = $instr->{name};
+	my $dir = $instr->{dir};
+	my $arg = $instr->{arg};
+	my $reg = $instr->{reg};
+	my $imm = $instr->{imm};
 
 	# get base binary instruction
 	my $binary = $instructions{lc $name};
@@ -141,6 +209,9 @@ foreach (@program) {
 		}
 	}
 
+	# constant, just set binary to this
+	$binary = $instr->{constant} if ($name =~ /^#/);
+
 	if ($output) {
 		print $output pack 'C', $binary;
 	} else {
@@ -148,4 +219,5 @@ foreach (@program) {
 			$address, $binary, "$name $dir$arg";
 	}
 }
+
 close $output if $output;

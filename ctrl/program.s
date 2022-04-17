@@ -16,7 +16,7 @@
 	ba r5
 
 	// finish up
-	no
+	mov <r0 		// load returned value so we can see it
 	hlt
 
 factorial: // n in r0, return address in r5, return value in r0
@@ -26,6 +26,7 @@ factorial: // n in r0, return address in r5, return value in r0
 
 fact_base:
 	sel #1			// accumulator is zero, so this is fine
+	mov >r0			// move into return field
 	br r5			// 'bye!
 
 fact_recur:
@@ -62,4 +63,4 @@ fact_recur:
 	br r5			// and we're back!
 
 fact_number:
-	#0
+	#5

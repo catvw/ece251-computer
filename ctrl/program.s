@@ -1,24 +1,40 @@
-// test program that computes the nth Fibonacci number (recursively!)
+// computes the first n Fibonacci numbers (recursively!)
 
 	// set up a stack pointer
-	sel #15
-	seh #15
-	mov >r6 // r6 now points to address 255, the end of memory
+	sel #0
+	seh #0
+	mov >r6 // r6 now points to address 256, one past the end of memory
 
 	// load which fibonacci number we're going for
+	mov >r2			// our loop counter and the current value of n
 	addr fibonacci_index
 	mov >r0
 	ld [r0]
-	mov >r0			// r0 now contains the target index
+	mov >r3			// r3 now contains the target index
 
-	// call factorial!
-	addr fibonacci
-	ba r5
+print_loop:
+	mov <r2			// load current n
+	mov >r0			// r0 now contains current n
 
-	// finish up
-	mov <r0 		// load returned value so we can see it
-	wr				// print out the accumulator
+	addr fibonacci	// load fibonacci() address
+	ba r5			// call fibonacci(n)!
+	mov <r0			// load fibonacci(n)
+	wr				// show it to the world
+
+	mov <r2			// load current n
+	sub r3			// compare n to target
+	bz end			// break out if finished
+	b continue		// continue loop if not
+
+end: // not much to do here, really
 	hlt
+
+continue:
+	mov <r2			// load current n
+	adi #1			// add 1
+	mov >r2			// re-store it
+	addr print_loop	// get print_loop address (because it's far away)
+	ba r5			// away we go again!
 
 fibonacci: // n in r0, return address in r5, return value in r0
 	mov <r0			// load n into accumulator
@@ -70,4 +86,4 @@ recurse:
 	ba r5			// branch back to caller!
 
 fibonacci_index:
-	#1
+	#13

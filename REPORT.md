@@ -321,6 +321,25 @@ programs in the same format as my example code and follow the grammar laid out
 above, things will work fine, but do *not* expect it to catch your errors very
 intelligently, or at all!
 
+## Static Data
+This processor does not distinguish between data and text segments because the
+available program size is so damn small. If static data is necessary, the
+assembler allows arbitrary decimal constants to be specified at given locations
+by writing *only* an immediate at some location in the code. For example, the
+following would create a constant addressable by using `ADDR constant` (see
+next section):
+```
+constant:
+	#127
+```
+
+## The `ADDR` Instruction
+The assembler provides one instruction which the machine does not, called
+`ADDR`, which takes a label as an argument. It's used to load the address of a
+label into the accumulator, and aliases to a `SEL`/`SEH` pairing in machine
+code. This was included to allow loading static data, addresses, or function
+labels easily.
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

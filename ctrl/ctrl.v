@@ -90,7 +90,9 @@ module ctrl(
 			)
 		) |
 		// branch if nonnegative
-		(exec_instr[5] & ~accumulator[7])
+		(exec_instr[5] & ~accumulator[7]) |
+		// branch unconditionally
+		~(exec_instr[5] | exec_instr[4])
 	);
 
 	// multiplexer for next instruction to execute

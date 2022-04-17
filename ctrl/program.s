@@ -1,11 +1,18 @@
-// computes the first n Fibonacci numbers (recursively!)
+//---------------------------------------------------------------------//
+// test program; computes the first n Fibonacci numbers (recursively!) //
+//---------------------------------------------------------------------//
 
+	b _start 		// so that we can have the "data segment" up here
+
+fibonacci_index: #13
+
+_start:
 	// set up a stack pointer
 	sel #0
 	seh #0
-	mov >r6 // r6 now points to address 256, one past the end of memory
+	mov >r6 		// r6 now points to 0x100, one byte past the end of memory
 
-	// load which fibonacci number we're going for
+	// load which Fibonacci number we're going for
 	mov >r2			// our loop counter and the current value of n
 	addr fibonacci_index
 	mov >r0
@@ -84,6 +91,3 @@ recurse:
 
 	ld [r1]			// retrieve return address (as that was the item)
 	ba r5			// branch back to caller!
-
-fibonacci_index:
-	#13

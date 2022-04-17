@@ -56,6 +56,11 @@ module ctrl(
 
 	// instruction logic lines
 	wire is_branch = ~exec_instr[7] & exec_instr[6];
+	wire is_register_branch = is_branch &
+	                          exec_instr[5] &
+	                          exec_instr[4];
+	wire is_near_branch = is_branch & ~is_register_branch;
+
 	wire is_alu = ~(exec_instr[7] | exec_instr[6]);
 	wire is_move = exec_instr[7] &
 	               ~exec_instr[6] &
@@ -85,7 +90,7 @@ module ctrl(
 	              exec_instr[4];
 
 	// branching logic
-	wire should_branch = is_branch & (
+	wire should_near_branch = is_near_branch & (
 		(
 			// branch if zero
 			exec_instr[4] & ~(
@@ -109,21 +114,28 @@ module ctrl(
 	wire[7:0] next_exec = stall ? 8'hFF : from_mem;
 
 	// program counter advance calculation
-	wire[7:0] next_pc;
+	wire[7:0] near_jump_next_pc;
+	wire[7:0] next_pc =
+		// if we're doing a register branch, set to the appropriate register;
+		// else, just take the near-jump option (constant + PC + advance)
+		is_register_branch ? (
+			exec_instr[3] ? exec_register : accumulator
+		) :
+		near_jump_next_pc;
 	wire pc_adder_Cout;
 
 	// lower 4 instruction bits, sign-extended
 	wire[7:0] sign_ext_immediate = {{4{exec_instr[3]}}, exec_instr[3:0]};
 
-	// immediate ANDed with whether we're executing a branch
-	wire[7:0] cond_branch_diff = {8{should_branch}} & sign_ext_immediate;
+	// immediate ANDed with whether we're executing a near-branch
+	wire[7:0] cond_branch_diff = {8{should_near_branch}} & sign_ext_immediate;
 
 	// whether we should just advance the program counter by one
-	wire advance_by_one = ~(stall | should_branch);
+	wire advance_by_one = ~(stall | should_near_branch);
 
 	// dedicated adders for a few things
-	eight_adder pc_adder(`PC, cond_branch_diff, advance_by_one, next_pc,
-	                     pc_adder_Cout);
+	eight_adder pc_adder(`PC, cond_branch_diff, advance_by_one,
+	                     near_jump_next_pc, pc_adder_Cout);
 
 	wire[7:0] acc_plus_immed;
 	wire immed_adder_Cout;
@@ -181,6 +193,9 @@ module ctrl(
 		if (is_move & exec_instr[3])
 			register_file[exec_instr[2:0]] <= accumulator;
 
+		if (is_register_branch)
+			register_file[exec_instr[2:0]] <= near_jump_next_pc;
+
 		// set up memory read/write
 		mem_write <= is_load_store & exec_instr[3];
 		address <= is_load_store ? exec_register : next_pc;
@@ -205,6 +220,7 @@ module ctrl(
 			4'b0100: $display("  B %b", exec_instr[3:0]);
 			4'b0101: $display("  BZ %b", exec_instr[3:0]);
 			4'b0110: $display("  BNN %b", exec_instr[3:0]);
+			4'b0111: $display("  BA/BR %b", exec_instr[3:0]);
 
 			4'b1000: $display("  MUL/DIV %b", exec_instr[3:0]);
 

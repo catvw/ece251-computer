@@ -97,6 +97,12 @@ module ctrl(
 	wire is_sel = is_set & ~exec_instr[4];
 	wire is_seh = is_set & exec_instr[4];
 
+	wire is_adi = exec_instr[7] &
+	              ~exec_instr[6] &
+	              ~exec_instr[5] &
+	              exec_instr[4];
+
+	// branching logic
 	wire should_branch = is_branch & (
 		(
 			// branch if zero
@@ -125,16 +131,22 @@ module ctrl(
 	wire pc_adder_Cout;
 
 	// lower 4 instruction bits, sign-extended
-	wire[7:0] sign_ext_branch_diff = {{4{exec_instr[3]}}, exec_instr[3:0]};
+	wire[7:0] sign_ext_immediate = {{4{exec_instr[3]}}, exec_instr[3:0]};
 
-	// branch diff ANDed with whether we're executing a branch
-	wire[7:0] cond_branch_diff = {8{should_branch}} & sign_ext_branch_diff;
+	// immediate ANDed with whether we're executing a branch
+	wire[7:0] cond_branch_diff = {8{should_branch}} & sign_ext_immediate;
 
 	// whether we should just advance the program counter by one
 	wire advance_by_one = ~(stall | should_branch);
 
+	// dedicated adders for a few things
 	eight_adder pc_adder(`PC, cond_branch_diff, advance_by_one, next_pc,
 	                     pc_adder_Cout);
+
+	wire[7:0] acc_plus_immed;
+	wire immed_adder_Cout;
+	eight_adder immed_adder(accumulator, sign_ext_immediate, 1'b0,
+	                        acc_plus_immed, immed_adder_Cout);
 
 	always @(negedge clock) begin
 		// finish divide or instruction/data fetch
@@ -152,13 +164,15 @@ module ctrl(
 	always @(posedge clock) begin
 		`PC <= next_pc;
 
-		// set the next value of the accumulator
+		// set the next value of the accumulator; could be done more
+		// efficiently in actual hardware, but whatever
 		accumulator <=
 			is_alu ? ALU_result :
 			(is_move & ~exec_instr[3]) ? exec_register :
 			is_mul ? product :
 			is_sel ? {accumulator[7:4], exec_instr[3:0]} :
 			is_seh ? {exec_instr[3:0], accumulator[3:0]} :
+			is_adi ? acc_plus_immed :
 			stall_for_div & div_complete ? quotient :
 			accumulator;
 

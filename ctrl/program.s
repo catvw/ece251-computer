@@ -24,6 +24,8 @@ loop:
 	no
 end:
 	mov <r7
+	st [r6]
+	ld [r5]
 	ld [r6]
 	mov >r1
 	hlt

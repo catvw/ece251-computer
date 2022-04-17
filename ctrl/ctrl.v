@@ -135,24 +135,19 @@ module ctrl(
 		// finish divide or instruction/data fetch
 		exec_instr <= next_exec;
 
-		if (is_load_store) begin
-			if (~exec_instr[3]) accumulator <= from_mem;
-		end
+		// load from memory if we need to do so
+		accumulator <=
+			is_load_store & ~exec_instr[3] ? from_mem : accumulator;
 
+		// read the register for the upcoming operation
 		exec_register <= register_file[from_mem[2:0]];
 		$display("  accumulator is %b (%d)", accumulator, accumulator);
 	end
 
 	always @(posedge clock) begin
-		// start instruction fetch
-		mem_write <= 0;
-		address <= next_pc;
 		`PC <= next_pc;
 
-		// start instruction execute
-		$display("0x%h: %d (%b)", address, exec_instr, exec_instr);
-
-		// the giant next-accumulator value mux
+		// set the next value of the accumulator
 		accumulator <=
 			is_alu ? ALU_result :
 			(is_move & ~exec_instr[3]) ? exec_register :
@@ -160,6 +155,16 @@ module ctrl(
 			is_set ? {accumulator[7:4], exec_instr[3:0]} :
 			accumulator;
 
+		// write to registers if necessary
+		if (is_move & exec_instr[3])
+			register_file[exec_instr[2:0]] <= accumulator;
+
+		// set up memory read/write
+		mem_write <= is_load_store & exec_instr[3];
+		address <= is_load_store ? exec_register : next_pc;
+		to_mem <= accumulator; // will do nothing if mem_write is zero
+
+		$display("0x%h: %d (%b)", address, exec_instr, exec_instr);
 		case(exec_instr[7:4])
 			4'b0000: begin
 				$display("  ADD/SUB %b", exec_instr[3:0]);
@@ -180,17 +185,10 @@ module ctrl(
 
 			4'b1101: begin
 				$display("  MOV %b", exec_instr[3:0]);
-				if (exec_instr[3]) // outbound to registers
-					register_file[exec_instr[2:0]] <= accumulator;
 			end
 
 			4'b1110: begin
 				$display("  LD/ST %b", exec_instr[3:0]);
-				address <= exec_register;
-				if (exec_instr[3]) begin
-					mem_write <= 1;
-					to_mem <= accumulator;
-				end
 			end
 
 			4'b0100: begin

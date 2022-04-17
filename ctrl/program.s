@@ -17,6 +17,7 @@
 
 	// finish up
 	mov <r0 		// load returned value so we can see it
+	wr				// print out the accumulator
 	hlt
 
 fibonacci: // n in r0, return address in r5, return value in r0
@@ -69,4 +70,4 @@ recurse:
 	ba r5			// branch back to caller!
 
 fibonacci_index:
-	#13
+	#1

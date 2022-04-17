@@ -37,8 +37,8 @@ module ctrl(
 	reg[7:0] exec_register;
 
 	reg stall_for_div;
-	wire stall_for_load_store; // only stalls for one cycle, so combinational
-	wire stall = stall_for_div | stall_for_load_store;
+	wire is_load_store; // only stalls for one cycle, so all we need to check
+	wire stall = stall_for_div | is_load_store;
 
 	initial begin
 		fetch_address <= 8'b0;
@@ -74,6 +74,24 @@ module ctrl(
 
 	// instruction logic lines
 	wire is_branch = ~exec_instr[7] & exec_instr[6];
+	wire is_alu = ~(exec_instr[7] | exec_instr[6]);
+	wire is_move = exec_instr[7] &
+	               exec_instr[6] &
+	               ~exec_instr[5] &
+	               exec_instr[4];
+	assign is_load_store = exec_instr[7] &
+	                       exec_instr[6] &
+	                       exec_instr[5] &
+	                       ~exec_instr[4];
+	wire is_mul = exec_instr[7] &
+	              ~(exec_instr[6] |
+	                exec_instr[5] |
+	                exec_instr[4]);
+	wire is_set = exec_instr[7] &
+	              exec_instr[6] &
+	              ~exec_instr[5] &
+	              ~exec_instr[4];
+
 	wire should_branch = is_branch & (
 		(
 			// branch if zero
@@ -93,14 +111,6 @@ module ctrl(
 		// branch unconditionally
 		~(exec_instr[5] | exec_instr[4])
 	);
-
-	wire is_alu = ~(exec_instr[7] | exec_instr[6]);
-
-	// current instruction is a load/store, so we'll have to wait a sec
-	assign stall_for_load_store = exec_instr[7] &
-	                              exec_instr[6] &
-	                              exec_instr[5] &
-	                              ~exec_instr[4];
 
 	// multiplexer for next instruction to execute
 	wire[7:0] next_exec = stall ? 8'hFF : from_mem;
@@ -125,7 +135,7 @@ module ctrl(
 		// finish divide or instruction/data fetch
 		exec_instr <= next_exec;
 
-		if (stall_for_load_store) begin
+		if (is_load_store) begin
 			if (~exec_instr[3]) accumulator <= from_mem;
 		end
 
@@ -142,7 +152,13 @@ module ctrl(
 		// start instruction execute
 		$display("0x%h: %d (%b)", address, exec_instr, exec_instr);
 
-		accumulator <= is_alu ? ALU_result : accumulator;
+		// the giant next-accumulator value mux
+		accumulator <=
+			is_alu ? ALU_result :
+			(is_move & ~exec_instr[3]) ? exec_register :
+			is_mul ? product :
+			is_set ? {accumulator[7:4], exec_instr[3:0]} :
+			accumulator;
 
 		case(exec_instr[7:4])
 			4'b0000: begin
@@ -160,15 +176,12 @@ module ctrl(
 
 			4'b1100: begin
 				$display("  SET %b", exec_instr[3:0]);
-				accumulator[3:0] <= exec_instr[3:0];
 			end
 
 			4'b1101: begin
 				$display("  MOV %b", exec_instr[3:0]);
 				if (exec_instr[3]) // outbound to registers
 					register_file[exec_instr[2:0]] <= accumulator;
-				else
-					accumulator <= exec_register;
 			end
 
 			4'b1110: begin
@@ -194,7 +207,6 @@ module ctrl(
 
 			4'b1000: begin
 				$display("  MUL %b", exec_instr[3:0]);
-				accumulator <= product;
 			end
 
 			4'b1001: begin

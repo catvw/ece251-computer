@@ -1,17 +1,24 @@
-	// set r0 to 15
-	set #0
+// test program for branching; i love my new assembler!
+	b forward
+	set #15
 	lsl #4
 	set #15
+
+forward:
+	// set r0 to 1
+	set #0
+	lsl #4
+	set #1 // i should really have sel/seh instructions...
 	mov >r0
 
+	// loop four times
+	set #4
 loop:
-	// loop until accumulator goes negative
-	add r0
+	sub r0
 	bnn loop
 
-	// store and load
-	st [r0]
-	set #0
-	ld [r0]
+	add r0
+	bz end
 
+end:
 	hlt

@@ -64,11 +64,9 @@ instructions. Note that division requires multiple cycles to complete and
 
 | Name | Format | Example | Description |
 | --- | --- | --- | --- |
-| (general) | `100 S X RRR` | (see below) | Perform special arithmetic operation `S` on register `RRR` and the accumulator. |
-| `MUL` | `100 0 X RRR` | `MUL R0` | Multiply the accumulator by register `RRR` (unsigned). |
-| `DIV` | `100 1 X RRR` | `DIV R2` | Divide the accumulator by register `RRR` (unsigned). |
-
-TODO: actually use the extra bit. No reason not to.
+| (general) | `1000 1 RRR` | (see below) | Perform special arithmetic operation `S` on register `RRR` and the accumulator. |
+| `MUL` | `1000 0 RRR` | `MUL R0` | Multiply the accumulator by register `RRR` (unsigned). |
+| `DIV` | `1000 1 RRR` | `DIV R2` | Divide the accumulator by register `RRR` (unsigned). |
 
 ### Branch Instructions
 All branches (for now) are PC-relative, and the branch constant `CCCC` is
@@ -90,16 +88,25 @@ Not too much to say about these aside from their descriptions.
 | `LD` | `1110 0 RRR` | `LD [R1]` | Load the data at the address contained in register `RRR` into the accumulator. |
 | `ST` | `1110 1 RRR` | `ST [R1]` | Store the data in the accumulator to the address contained in register `RRR`. |
 
-### Special-Case Instructions
-There are a few other operations this computer performs which aren't covered by
-the above categories, and are thus presented below.
+### Set Instructions
+A small category, but there *are* two of them.
 
 | Name | Format | Example | Description |
 | --- | --- | --- | --- |
-| `SET` | `1100 CCCC` | `SET #13` | Set the lower 4 bits of the accumulator to `CCCC`. |
-| `MOV` | `1101 D RRR` | `MOV >R0` | If `D` is set, move the the accumulator into register `RRR`. Else, do the reverse. |
-| `HLT` | `1010 XXXX` | `HLT` | Halts the processor (really just calls `$finish`). |
-| `NO` | `1111 XXXX` | `NO` | No-op. |
+| `SEL` | `1100 CCCC` | `SEL #13` | Set the lower 4 bits of the accumulator to `CCCC`. |
+| `SEH` | `1101 CCCC` | `SEH #0` | Set the upper 4 bits of the accumulator to `CCCC`. |
+
+### Miscellaneous Instructions
+There are a few other operations this computer performs which aren't covered by
+the above categories, and are thus presented below. Note that instructions
+beginning with `1111` are special cases and do not take any arguments.
+
+| Name | Format | Example | Description |
+| --- | --- | --- | --- |
+| `ADI` | `1001 CCCC` | `ADI #-1` | Add `CCCC` (sign-extended) to the accumulator. |
+| `MOV` | `1010 D RRR` | `MOV >R0` | If `D` is set, move the the accumulator into register `RRR`. Else, do the reverse. |
+| `HLT` | `1111 1010` | `HLT` | Halts the processor (really just calls `$finish`). |
+| `NO` | `1111 1111` | `NO` | No-op. |
 
 Any instruction not listed above is considered an illegal instruction and may
 have exciting consequences when executed.

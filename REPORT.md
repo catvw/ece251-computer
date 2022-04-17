@@ -69,8 +69,11 @@ instructions. Note that division requires multiple cycles to complete and
 | `DIV` | `1000 1 RRR` | `DIV R2` | Divide the accumulator by register `RRR` (unsigned). |
 
 ### Branch Instructions
-All branches (for now) are PC-relative, and the branch constant `CCCC` is
-sign-extended to allow branching backwards.
+Branches with a four-bit immediate `CCCC`, are PC-relative, and the branch
+constant is sign-extended to allow branching backwards. The `BA` and `BR`
+instructions would be the ones used to implement function calls, and due to
+their structure could be used to implement two-function coroutines reasonably
+well.
 
 | Name | Format | Example | Description |
 | --- | --- | --- | --- |
@@ -78,6 +81,8 @@ sign-extended to allow branching backwards.
 | `B` | `01 00 CCCC` | `B label` | Unconditionally branch to `R7 + CCCC`. |
 | `BZ` | `01 01 CCCC` | `BZ label` | Branch to `R7 + CCCC` if the accumulator is zero. |
 | `BNN` | `01 10 CCCC` | `BNN label` | Branch to `R7 + CCCC` if the accumulator is nonnegative. |
+| `BA` | `01 11 0RRR` | `BA R2` | Branch to the accumulator and leave a return address in register `RRR`. |
+| `BR` | `01 11 1RRR` | `BR R4` | Branch to register `RRR` and overwrite it with a return address. |
 
 ### Memory-Transfer Instructions
 Not too much to say about these aside from their descriptions.

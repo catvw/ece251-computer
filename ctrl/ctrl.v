@@ -76,25 +76,26 @@ module ctrl(
 	wire is_branch = ~exec_instr[7] & exec_instr[6];
 	wire is_alu = ~(exec_instr[7] | exec_instr[6]);
 	wire is_move = exec_instr[7] &
-	               exec_instr[6] &
-	               ~exec_instr[5] &
-	               exec_instr[4];
+	               ~exec_instr[6] &
+	               exec_instr[5] &
+	               ~exec_instr[4];
 	assign is_load_store = exec_instr[7] &
 	                       exec_instr[6] &
 	                       exec_instr[5] &
 	                       ~exec_instr[4];
-	wire is_mul = exec_instr[7] &
-	              ~(exec_instr[6] |
-	                exec_instr[5] |
-	                exec_instr[4]);
-	wire is_div = exec_instr[7] &
-	              ~exec_instr[6] &
-	              ~exec_instr[5] &
-	              exec_instr[4];
+
+	wire is_mul_div = exec_instr[7] &
+	                  ~(exec_instr[6] |
+	                    exec_instr[5] |
+	                    exec_instr[4]);
+	wire is_mul = is_mul_div & ~exec_instr[3];
+	wire is_div = is_mul_div & exec_instr[3];
+
 	wire is_set = exec_instr[7] &
 	              exec_instr[6] &
-	              ~exec_instr[5] &
-	              ~exec_instr[4];
+	              ~exec_instr[5];
+	wire is_sel = is_set & ~exec_instr[4];
+	wire is_seh = is_set & exec_instr[4];
 
 	wire should_branch = is_branch & (
 		(
@@ -156,7 +157,8 @@ module ctrl(
 			is_alu ? ALU_result :
 			(is_move & ~exec_instr[3]) ? exec_register :
 			is_mul ? product :
-			is_set ? {accumulator[7:4], exec_instr[3:0]} :
+			is_sel ? {accumulator[7:4], exec_instr[3:0]} :
+			is_seh ? {exec_instr[3:0], accumulator[3:0]} :
 			stall_for_div & div_complete ? quotient :
 			accumulator;
 
@@ -173,60 +175,36 @@ module ctrl(
 		stall_for_div <= is_div | (stall_for_div & ~div_complete);
 
 		// print out fun stuff (and also run halt/illegal)
-		$display("0x%h: %d (%b)", address, exec_instr, exec_instr);
+		$display("0x%h: %h (%b)", address, exec_instr, exec_instr);
 		case(exec_instr[7:4])
-			4'b0000: begin
-				$display("  ADD/SUB %b", exec_instr[3:0]);
-			end
-			4'b0001: begin
-				$display("  AND/OR %b", exec_instr[3:0]);
-			end
-			4'b0010: begin
-				$display("  LSL/LSR %b", exec_instr[3:0]);
-			end
-			4'b0011: begin
-				$display("  NOT/XOR %b", exec_instr[3:0]);
-			end
+			4'b0000: $display("  ADD/SUB %b", exec_instr[3:0]);
+			4'b0001: $display("  AND/OR %b", exec_instr[3:0]);
+			4'b0010: $display("  LSL/LSR %b", exec_instr[3:0]);
+			4'b0011: $display("  NOT/XOR %b", exec_instr[3:0]);
 
-			4'b1100: begin
-				$display("  SET %b", exec_instr[3:0]);
-			end
+			4'b1100: $display("  SEL %b", exec_instr[3:0]);
+			4'b1101: $display("  SEH %b", exec_instr[3:0]);
 
-			4'b1101: begin
-				$display("  MOV %b", exec_instr[3:0]);
-			end
+			4'b1110: $display("  LD/ST %b", exec_instr[3:0]);
 
-			4'b1110: begin
-				$display("  LD/ST %b", exec_instr[3:0]);
-			end
+			4'b0100: $display("  B %b", exec_instr[3:0]);
+			4'b0101: $display("  BZ %b", exec_instr[3:0]);
+			4'b0110: $display("  BNN %b", exec_instr[3:0]);
 
-			4'b0100: begin
-				$display("  B %b", exec_instr[3:0]);
-			end
+			4'b1000: $display("  MUL/DIV %b", exec_instr[3:0]);
 
-			4'b0101: begin
-				$display("  BZ %b", exec_instr[3:0]);
-			end
-
-			4'b0110: begin
-				$display("  BNN %b", exec_instr[3:0]);
-			end
-
-			4'b1000: begin
-				$display("  MUL %b", exec_instr[3:0]);
-			end
-
-			4'b1001: begin
-				$display("  DIV %b", exec_instr[3:0]);
-			end
+			4'b1001: $display("  ADI %b", exec_instr[3:0]);
+			4'b1010: $display("  MOV %b", exec_instr[3:0]);
 
 			4'b1111: begin
-				$display("  NO");
-			end
+				case(exec_instr[3:0])
+					4'b1111: $display("  NO");
 
-			4'b1010: begin
-				$display("  HLT");
-				$finish;
+					4'b1010: begin
+						$display("  HLT");
+						$finish;
+					end
+				endcase
 			end
 
 			default: begin // just in case

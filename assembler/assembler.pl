@@ -12,8 +12,8 @@ my %instructions = (
 	'not' => 0b00_110_000,
 	'xor' => 0b00_111_000,
 
-	'mul' => 0b100_0_0_000,
-	'div' => 0b100_1_0_000,
+	'mul' => 0b1000_0_000,
+	'div' => 0b1000_1_000,
 
 	'b'   => 0b01_00_0000,
 	'bz'  => 0b01_01_0000,
@@ -22,10 +22,13 @@ my %instructions = (
 	'ld'  => 0b1110_0_000,
 	'st'  => 0b1110_1_000,
 
-	'set' => 0b1100_0000,
-	'mov' => 0b1101_0_000,
-	'hlt' => 0b1010_0000,
-	'no'  => 0b1111_0000,
+	'sel' => 0b1100_0000,
+	'seh' => 0b1101_0000,
+
+	'adi' => 0b1001_0000,
+	'mov' => 0b1010_0000,
+	'hlt' => 0b1111_1010,
+	'no'  => 0b1111_1111,
 );
 
 my @takes_register = (
@@ -37,7 +40,7 @@ my @takes_direction = (
 );
 
 my @takes_immediate = (
-	'lsl', 'lsr', 'set',
+	'lsl', 'lsr', 'sel', 'seh', 'adi'
 );
 
 my @takes_label = (

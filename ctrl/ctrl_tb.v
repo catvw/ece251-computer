@@ -1,6 +1,7 @@
 `timescale 1ms / 1ms
 
 `define MEMFILE "program.bin"
+//`define PRINT_STUFF
 
 `include "../mem/mem.v"
 `include "../alu/alu.v"

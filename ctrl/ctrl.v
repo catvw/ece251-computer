@@ -171,7 +171,9 @@ module ctrl(
 
 		// read the register for the upcoming operation
 		exec_register <= register_file[from_mem[2:0]];
+`ifdef PRINT_STUFF
 		$display("  accumulator is %b (%d)", accumulator, accumulator);
+`endif
 	end
 
 	always @(posedge clock) begin
@@ -204,7 +206,8 @@ module ctrl(
 		// update division stall flag
 		stall_for_div <= is_div | (stall_for_div & ~div_complete);
 
-		// print out fun stuff (and also run halt/illegal)
+`ifdef PRINT_STUFF
+		// print out fun stuff
 		$display("0x%h: %h (%b)", address, exec_instr, exec_instr);
 		case(exec_instr[7:4])
 			4'b0000: $display("  ADD/SUB %b", exec_instr[3:0]);
@@ -229,23 +232,31 @@ module ctrl(
 
 			4'b1111: begin
 				case(exec_instr[3:0])
+					4'b0000: $display("  WR");
 					4'b1111: $display("  NO");
 
 					4'b1010: begin
 						$display("  HLT");
-						$finish;
 					end
 				endcase
 			end
 
 			default: begin // just in case
 				$display("illegal instruction");
-				$finish;
 			end
 		endcase
 
 		if (stall_for_div & div_complete) begin
 			$display("  divide finished");
+		end
+`endif
+		
+		if (exec_instr[7:4] == 4'b1111) begin
+			case(exec_instr[3:0])
+				4'b0000: $display("acc: 0x%h / %d / 0b%b",
+					accumulator, accumulator, accumulator);
+				4'b1010: $finish;
+			endcase
 		end
 	end
 endmodule

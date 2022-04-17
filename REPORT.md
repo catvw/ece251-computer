@@ -64,15 +64,16 @@ instructions. Note that division requires multiple cycles to complete and
 
 | Name | Format | Example | Description |
 | --- | --- | --- | --- |
-| (general) | `100 S X RRR` | (see below) | Perform special arithmetic operation `S` on register `RRR` and the accumulator. |
-| `MUL` | `100 0 X RRR` | `MUL R0` | Multiply the accumulator by register `RRR` (unsigned). |
-| `DIV` | `100 1 X RRR` | `DIV R2` | Divide the accumulator by register `RRR` (unsigned). |
-
-TODO: actually use the extra bit. No reason not to.
+| (general) | `1000 1 RRR` | (see below) | Perform special arithmetic operation `S` on register `RRR` and the accumulator. |
+| `MUL` | `1000 0 RRR` | `MUL R0` | Multiply the accumulator by register `RRR` (unsigned). |
+| `DIV` | `1000 1 RRR` | `DIV R2` | Divide the accumulator by register `RRR` (unsigned). |
 
 ### Branch Instructions
-All branches (for now) are PC-relative, and the branch constant `CCCC` is
-sign-extended to allow branching backwards.
+Branches with a four-bit immediate `CCCC`, are PC-relative, and the branch
+constant is sign-extended to allow branching backwards. The `BA` and `BR`
+instructions would be the ones used to implement function calls, and due to
+their structure could be used to implement two-function coroutines reasonably
+well.
 
 | Name | Format | Example | Description |
 | --- | --- | --- | --- |
@@ -80,6 +81,8 @@ sign-extended to allow branching backwards.
 | `B` | `01 00 CCCC` | `B label` | Unconditionally branch to `R7 + CCCC`. |
 | `BZ` | `01 01 CCCC` | `BZ label` | Branch to `R7 + CCCC` if the accumulator is zero. |
 | `BNN` | `01 10 CCCC` | `BNN label` | Branch to `R7 + CCCC` if the accumulator is nonnegative. |
+| `BA` | `01 11 0RRR` | `BA R2` | Branch to the accumulator and leave a return address in register `RRR`. |
+| `BR` | `01 11 1RRR` | `BR R4` | Branch to register `RRR` and overwrite it with a return address. |
 
 ### Memory-Transfer Instructions
 Not too much to say about these aside from their descriptions.
@@ -90,16 +93,25 @@ Not too much to say about these aside from their descriptions.
 | `LD` | `1110 0 RRR` | `LD [R1]` | Load the data at the address contained in register `RRR` into the accumulator. |
 | `ST` | `1110 1 RRR` | `ST [R1]` | Store the data in the accumulator to the address contained in register `RRR`. |
 
-### Special-Case Instructions
-There are a few other operations this computer performs which aren't covered by
-the above categories, and are thus presented below.
+### Set Instructions
+A small category, but there *are* two of them.
 
 | Name | Format | Example | Description |
 | --- | --- | --- | --- |
-| `SET` | `1100 CCCC` | `SET #13` | Set the lower 4 bits of the accumulator to `CCCC`. |
-| `MOV` | `1101 D RRR` | `MOV >R0` | If `D` is set, move the the accumulator into register `RRR`. Else, do the reverse. |
-| `HLT` | `1010 XXXX` | `HLT` | Halts the processor (really just calls `$finish`). |
-| `NO` | `1111 XXXX` | `NO` | No-op. |
+| `SEL` | `1100 CCCC` | `SEL #13` | Set the lower 4 bits of the accumulator to `CCCC`. |
+| `SEH` | `1101 CCCC` | `SEH #0` | Set the upper 4 bits of the accumulator to `CCCC`. |
+
+### Miscellaneous Instructions
+There are a few other operations this computer performs which aren't covered by
+the above categories, and are thus presented below. Note that instructions
+beginning with `1111` are special cases and do not take any arguments.
+
+| Name | Format | Example | Description |
+| --- | --- | --- | --- |
+| `ADI` | `1001 CCCC` | `ADI #-1` | Add the immediate `CCCC` (sign-extended) to the accumulator. |
+| `MOV` | `1010 D RRR` | `MOV >R0` | If `D` is set, move the the accumulator into register `RRR`. Else, do the reverse. |
+| `HLT` | `1111 1010` | `HLT` | Halts the processor (really just calls `$finish`). |
+| `NO` | `1111 1111` | `NO` | No-op. |
 
 Any instruction not listed above is considered an illegal instruction and may
 have exciting consequences when executed.
@@ -255,8 +267,8 @@ into the accumulator. Once that happens, execution resumes as usual.
 The goal for this computer was to implement it in mostly gate-level Verilog. A
 few tricks to get this working properly merit some mention.
 
-## Branches
-Branch calculations are done with an eight-bit adder only, using all three
+## Near-Branches
+Near-branch calculations are done with an eight-bit adder only, using all three
 inputs: one numeric input each for the program counter and the branch jump
 quantity, and one carry input used instead for a conditional one-byte advance.
 Since instructions are only one byte long, this is possible and saves some
@@ -276,6 +288,15 @@ and the usual 8-bit addends for a single adder.
 The good news is that, once `next_pc` is set up, it can also be used for the
 next value of `address`, as we want to read that instruction into memory next.
 This makes for a pretty compact implementation in hardware.
+
+## Register Branches
+These were surprisingly easy to implement, and were done *after* gate-leveling
+and pipelining---I simply multiplexed `next_pc` with either the near-branch or
+the register-branch target, and multiplexed the register-file write to save the
+"return" address. To make this easier, I split `next_pc` into always-near and
+always-register calculations; the value the program counter *would* have taken
+if a register branch weren't about to occur is the one saved in the register in
+question.
 
 # Register Initialization
 For my convenience writing this computer, I set the first six registers to one
@@ -299,6 +320,25 @@ things, the assembler *does virtually no grammar checking*. If you write
 programs in the same format as my example code and follow the grammar laid out
 above, things will work fine, but do *not* expect it to catch your errors very
 intelligently, or at all!
+
+## Static Data
+This processor does not distinguish between data and text segments because the
+available program size is so damn small. If static data is necessary, the
+assembler allows arbitrary decimal constants to be specified at given locations
+by writing *only* an immediate at some location in the code. For example, the
+following would create a constant addressable by using `ADDR constant` (see
+next section):
+```
+constant:
+	#127
+```
+
+## The `ADDR` Instruction
+The assembler provides one instruction which the machine does not, called
+`ADDR`, which takes a label as an argument. It's used to load the address of a
+label into the accumulator, and aliases to a `SEL`/`SEH` pairing in machine
+code. This was included to allow loading static data, addresses, or function
+labels easily.
 
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®

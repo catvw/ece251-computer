@@ -103,7 +103,7 @@ beginning with `1111` are special cases and do not take any arguments.
 
 | Name | Format | Example | Description |
 | --- | --- | --- | --- |
-| `ADI` | `1001 CCCC` | `ADI #-1` | Add `CCCC` (sign-extended) to the accumulator. |
+| `ADI` | `1001 CCCC` | `ADI #-1` | Add the immediate `CCCC` (sign-extended) to the accumulator. |
 | `MOV` | `1010 D RRR` | `MOV >R0` | If `D` is set, move the the accumulator into register `RRR`. Else, do the reverse. |
 | `HLT` | `1111 1010` | `HLT` | Halts the processor (really just calls `$finish`). |
 | `NO` | `1111 1111` | `NO` | No-op. |

@@ -25,4 +25,5 @@ loop:
 end:
 	mov <r7
 	ld [r6]
+	mov >r1
 	hlt

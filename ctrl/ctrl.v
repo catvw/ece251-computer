@@ -37,7 +37,7 @@ module ctrl(
 	reg[7:0] exec_register;
 
 	reg stall_for_div;
-	reg stall_for_load_store;
+	wire stall_for_load_store; // only stalls for one cycle, so combinational
 	wire stall = stall_for_div | stall_for_load_store;
 
 	initial begin
@@ -45,7 +45,6 @@ module ctrl(
 		fetch_instr <= 8'hFF;
 		exec_instr <= 8'hFF;
 		stall_for_div <= 0;
-		stall_for_load_store <= 0;
 
 		accumulator <= 8'b0;
 		register_file[0] <= 0;
@@ -95,6 +94,12 @@ module ctrl(
 		~(exec_instr[5] | exec_instr[4])
 	);
 
+	// current instruction is a load/store, so we'll have to wait a sec
+	assign stall_for_load_store = exec_instr[7] &
+	                              exec_instr[6] &
+	                              exec_instr[5] &
+	                              ~exec_instr[4];
+
 	// multiplexer for next instruction to execute
 	wire[7:0] next_exec = stall ? 8'hFF : from_mem;
 
@@ -120,18 +125,15 @@ module ctrl(
 
 		if (stall_for_load_store) begin
 			if (~exec_instr[3]) accumulator <= from_mem;
-			stall_for_load_store <= 0;
 		end
 
 		exec_register <= register_file[from_mem[2:0]];
-		$display("  neg: advance=%d next_pc=%d", advance_by_one, next_pc);
 		$display("  accumulator is %b (%d)", accumulator, accumulator);
 	end
 
 	always @(posedge clock) begin
 		// start instruction fetch
 		mem_write <= 0;
-		$display("  pos: PC=%d advance=%d next_pc=%d ", `PC, advance_by_one, next_pc);
 		address <= next_pc;
 		`PC <= next_pc;
 
@@ -176,9 +178,6 @@ module ctrl(
 					mem_write <= 1;
 					to_mem <= accumulator;
 				end
-
-				// set up special handling on the falling edge
-				stall_for_load_store <= 1;
 			end
 
 			4'b0100: begin

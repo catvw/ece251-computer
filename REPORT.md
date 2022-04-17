@@ -267,8 +267,8 @@ into the accumulator. Once that happens, execution resumes as usual.
 The goal for this computer was to implement it in mostly gate-level Verilog. A
 few tricks to get this working properly merit some mention.
 
-## Branches
-Branch calculations are done with an eight-bit adder only, using all three
+## Near-Branches
+Near-branch calculations are done with an eight-bit adder only, using all three
 inputs: one numeric input each for the program counter and the branch jump
 quantity, and one carry input used instead for a conditional one-byte advance.
 Since instructions are only one byte long, this is possible and saves some
@@ -288,6 +288,15 @@ and the usual 8-bit addends for a single adder.
 The good news is that, once `next_pc` is set up, it can also be used for the
 next value of `address`, as we want to read that instruction into memory next.
 This makes for a pretty compact implementation in hardware.
+
+## Register Branches
+These were surprisingly easy to implement, and were done *after* gate-leveling
+and pipelining---I simply multiplexed `next_pc` with either the near-branch or
+the register-branch target, and multiplexed the register-file write to save the
+"return" address. To make this easier, I split `next_pc` into always-near and
+always-register calculations; the value the program counter *would* have taken
+if a register branch weren't about to occur is the one saved in the register in
+question.
 
 # Register Initialization
 For my convenience writing this computer, I set the first six registers to one

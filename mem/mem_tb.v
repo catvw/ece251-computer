@@ -1,5 +1,7 @@
 `timescale 1ms / 1ms  
 
+`define MEMFILE "empty.mem"
+
 module mem_tb;
 	reg clock;
 	reg write;

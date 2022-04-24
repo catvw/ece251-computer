@@ -393,6 +393,25 @@ next, but *this* time the ALU has nothing to do with things, as it's a `SEH`
 operation: the lower four bits of the instruction are simply copied to the
 upper four bits of the accumulator at 40 ms.
 
+### Move Operations ("m-type")
+
+If we run
+```
+MOV <R5
+HLT
+```
+we'll actually have to use the `exec_register` register, which is set on a
+falling edge to whatever register needs to be read for the next instruction.
+
+![](report_files/m_type_timing.png)
+
+The register file is written on the rising edge and read on the falling edge,
+based on the value of `next_exec` (which is set conditionally depending on what
+will be executed in the next cycle). At 20 ms, this means that `R7` is read
+into `exec_register` in preparation for the execution of `A5`/`MOV <R5` on the
+next rising edge---and the accumulator is duly set to the value of
+`exec_register` at 40 ms.
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

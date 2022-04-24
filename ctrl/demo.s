@@ -1,2 +1,2 @@
-	seh #8
+	mov <r5
 	hlt

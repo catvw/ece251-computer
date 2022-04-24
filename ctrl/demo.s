@@ -1,2 +1,2 @@
-	add r4
+	seh #8
 	hlt

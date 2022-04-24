@@ -377,6 +377,22 @@ At 40 ms, `ADD R4` is executed, setting the accumulator to 7 (as `R4` contained
 At 60 ms, the pipeline is advanced again, and `HLT` is copied into
 `exec_instr`, in preparation for its execution at 80 ms.
 
+### Single-Immediate Operations ("i-type")
+
+The following diagram shows the result of running
+```
+SEH #8
+HLT
+```
+on the processor:
+
+![](report_files/i_type_timing.png)
+
+Like before, the instruction is loaded on the first pulse and executed on the
+next, but *this* time the ALU has nothing to do with things, as it's a `SEH`
+operation: the lower four bits of the instruction are simply copied to the
+upper four bits of the accumulator at 40 ms.
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

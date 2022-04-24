@@ -347,6 +347,9 @@ In case you *really* want to know what's going on inside.
 
 ## Architecture Diagram
 
+The overall architecture is this:
+![](report_files/comparch.png)
+
 ## Timing Diagrams
 You said to do separate diagrams for the single-cycle and pipelined
 implementations---but, due to the simplicity of the pipeline, I decided it made
@@ -485,9 +488,10 @@ stays high until the division is finished, preventing the program counter from
 advancing and loading no-ops into `exec_instr`. Once the divide finishes, the
 result is copied to the accumulator and processing resumes as usual.
 
-# Sources
+# Citations
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey
 - *Verilog by Example: A Concise Introduction for FPGA Design*, Blaine Readler
 - Intel 4004 datasheet:
   http://datasheets.chipdb.org/Intel/MCS-4/datashts/intel-4004.pdf
+- Schematic program: https://ludens.cl/Electron/kisscad/kisscad.html

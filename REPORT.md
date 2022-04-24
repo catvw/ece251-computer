@@ -468,6 +468,23 @@ Far branching is simply another input to the `next_pc` multiplexer, taking the
 current value of the accumulator or one of the registers instead of the program
 counter and an offset; the actual timing is the same.
 
+### Division (because it's painful)
+
+I won't go into detail, but here's what
+```
+MOV <R6
+DIV R2
+HLT
+```
+looks like:
+
+![](report_files/div_timing.png)
+
+Once the processor knows it's about to do a division, `stall` goes high, and
+stays high until the division is finished, preventing the program counter from
+advancing and loading no-ops into `exec_instr`. Once the divide finishes, the
+result is copied to the accumulator and processing resumes as usual.
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

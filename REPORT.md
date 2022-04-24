@@ -350,6 +350,83 @@ In case you *really* want to know what's going on inside.
 The overall architecture is this:
 ![](report_files/comparch.png)
 
+Briefly: there is exactly one memory module and one register file, shared for
+all operations. The fetch stage consists of the memory module, the `address`
+and `to_mem` registers, and the next instruction to be read from memory (not
+directly shown; intrinsic to the module). The execution stage consists of the
+instruction decoder, the register file, the accumulator, and the branch
+controller---it may seem like a lot, but it's all combinational logic and runs
+(roughly) in parallel. At least, as much as it can with the accumulator
+presenting a data hazard for every instruction.
+
+The instruction decoding section is mostly just a collection of logic lines and
+a multiplexer chain to determine the next value of the accumulator. Each
+accumulator-changing operation may be found hanging off its respective
+multiplexer.
+
+The branch control section determines the next program counter value, and
+broadcasts that information to the program counter itself as well as the
+instruction-fetch stage (and potentially the register file).
+
+Finally, the memory section deals solely with writing to memory or reading from
+memory, given the values of `address`, `to_mem`, and whether memory should be
+written.
+
+So that the diagram is not absolutely maddening, I'll describe the path of a
+few example instructions below.
+
+### Single-Register Arithmetic Operations ("a-type")
+
+The `is_alu` line is brought high, telling the multiplexer chain to use the
+output of the general-purpose ALU as the next accumulator value. If that
+particular ALU instruction uses an immediate, the instruction decoder lets the
+appropriate use-immediate multiplexer know.
+
+### Single-Immediate Operations ("i-type")
+
+`SEL` and `SEH` both use an immediate to affect the accumulator, but do not use
+the ALU to do so---thus, each one has its own dedicated multiplexer. In real
+hardware, this could certainly be optimized significantly, but the symbolic
+representation felt better expressed this way. Depending on the instruction,
+the appropriate bits of the accumulator are overwritten, as hinted at in the
+large box taking `A` and `E` as inputs.
+
+### Move Operations ("m-type")
+
+If moving from a register to the accumulator, the move multiplexer is enabled,
+setting the accumulator to the value of `exec_register`. Otherwise, the
+instruction decoder brings the register-write line high, and (since a move is
+not a register branch) the appropriate register will be overwritten.
+
+### Load-Store Operations ("h-type," for "heap-referencing")
+
+`is_load_store` will be brought high and the write-enable line for the memory
+module will be set appropriately. This has the dual effect of setting the next
+value of `address` to the one in the referenced register *and* telling the
+next-instruction multiplexer to insert a no-op on the next cycle to allow the
+operation to complete.
+
+### Near and Far Branching ("b-type" or "j-type," depending on persuasion)
+
+For a near branch, `should_near_branch` is brought high and `advance_by_one` is
+brought *low*, telling the program-counter adder to add the branch offset to
+the program counter instead of just adding one to it. Note that `address` gets
+the output of this adder, *not* the current value of the program counter, which
+was set up that way to ensure that reading the program counter from within a
+program gave the address of the *currently*-executing instruction.
+
+For a far branch, `should_near_branch` is set low, `advance_by_one` is set
+high, `is_register_branch` is set high, *and* the register-file write enable is
+set high, so that the value of the *subsequent* instruction is stored in the
+right register and the value of the *branched-to* instruction is next fetched
+from memory.
+
+### Division (because it's painful)
+
+Division works mostly like an ALU operation, with one exception: until the
+divide is complete, the `stall` line will remain high, feeding the accumulator
+back to itself until `div_complete` is set and the last multiplexer is enabled.
+
 ## Timing Diagrams
 You said to do separate diagrams for the single-cycle and pipelined
 implementations---but, due to the simplicity of the pipeline, I decided it made
@@ -417,7 +494,7 @@ into `exec_register` in preparation for the execution of `A5`/`MOV <R5` on the
 next rising edge---and the accumulator is duly set to the value of
 `exec_register` at 40 ms.
 
-### Load-Store Operations ("h-type," for "heap-referencing")
+### Load-Store Operations ("h-type")
 
 Running
 ```
@@ -443,7 +520,7 @@ instruction-load stage to execute again at 80 ms.
 order to do its write---otherwise, `address` would be used for instruction
 loading.
 
-### Near and Far Branching ("b-type" or "j-type," depending on persuasion)
+### Near and Far Branching ("b-type," "j-type")
 
 The program
 ```
@@ -471,7 +548,7 @@ Far branching is simply another input to the `next_pc` multiplexer, taking the
 current value of the accumulator or one of the registers instead of the program
 counter and an offset; the actual timing is the same.
 
-### Division (because it's painful)
+### Division
 
 I won't go into detail, but here's what
 ```

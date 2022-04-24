@@ -440,6 +440,30 @@ instruction-load stage to execute again at 80 ms.
 order to do its write---otherwise, `address` would be used for instruction
 loading.
 
+### Near and Far Branching ("b-type" or "j-type," depending on persuasion)
+
+The program
+```
+BZ end
+NO
+NO
+NO
+end: HLT
+```
+does not require a stall! It's just a little odd to look at.
+
+![](report_files/b_type_timing.png)
+
+Since the accumulator is fully set up on a falling edge, `should_near_branch`
+(whether we're doing a short-jump branch on the next cycle) can figure out
+whether a branch is about to occur pretty easily, as branching conditions
+depend *only* on the value of the accumulator. At 20 ms, the accumulator is
+zero, and thus it goes high, telling `next_pc` to add the value of the branch
+immediate (in this case, 3) to the current value of the program counter and use
+that as the next instruction load address. When the branch is executed at 40
+ms, `address` and `PC`/`register_file[7]` are set appropriately, and the next
+load cycle at 60 ms loads the final `HLT`.
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

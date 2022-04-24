@@ -1,3 +1,6 @@
-	ld [r1]
+	bz end
+	no
+	no
+	no
+end:
 	hlt
-	#99

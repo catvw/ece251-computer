@@ -464,6 +464,10 @@ that as the next instruction load address. When the branch is executed at 40
 ms, `address` and `PC`/`register_file[7]` are set appropriately, and the next
 load cycle at 60 ms loads the final `HLT`.
 
+Far branching is simply another input to the `next_pc` multiplexer, taking the
+current value of the accumulator or one of the registers instead of the program
+counter and an offset; the actual timing is the same.
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

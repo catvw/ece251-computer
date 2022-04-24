@@ -341,7 +341,9 @@ label into the accumulator, and aliases to a `SEL`/`SEH` pairing in machine
 code. This was included to allow loading static data, addresses, or function
 labels easily.
 
-# End Results
+# Exposition
+
+In case you *really* want to know what's going on inside.
 
 ## Architecture Diagram
 
@@ -411,6 +413,28 @@ will be executed in the next cycle). At 20 ms, this means that `R7` is read
 into `exec_register` in preparation for the execution of `A5`/`MOV <R5` on the
 next rising edge---and the accumulator is duly set to the value of
 `exec_register` at 40 ms.
+
+### Load-Store Operations ("h-type," for "heap-referencing")
+
+Running
+```
+LD [R1]
+HLT
+#99
+```
+will attempt to load 99 into the accumulator, and in doing so will require a
+pipeline stall.
+
+![](report_files/h_type_timing.png)
+
+The first instruction, `E1`/`LD [R1]` is loaded and copied into `exec_register`
+as usual, but `LD` instructions have to hijack the datapath to load a specified
+value from memory. Note that `next_exec` becomes `FF`/`NO` at 20 ms and `stall`
+goes high, which will cause a no-op to be executed---which is good, because
+otherwise the processor would attempt to execute the value that `LD` just
+fetched from memory. After the accumulator is safely set to the loaded value at
+60 ms, `stall` goes low, allowing the program counter to advance and the usual
+instruction-load stage to execute again at 80 ms.
 
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®

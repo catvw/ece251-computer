@@ -436,6 +436,10 @@ fetched from memory. After the accumulator is safely set to the loaded value at
 60 ms, `stall` goes low, allowing the program counter to advance and the usual
 instruction-load stage to execute again at 80 ms.
 
+`ST` also requires a stall, but only for the fact that it hijacks `address` in
+order to do its write---otherwise, `address` would be used for instruction
+loading.
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

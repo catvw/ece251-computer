@@ -341,6 +341,27 @@ label into the accumulator, and aliases to a `SEL`/`SEH` pairing in machine
 code. This was included to allow loading static data, addresses, or function
 labels easily.
 
+# End Results
+
+## Timing Diagrams
+You said to do separate diagrams for the single-cycle and pipelined
+implementations---but, due to the simplicity of the pipeline, I decided it made
+more sense to just show the pipelined version. They're not enormously
+different.
+
+### Single-Register Arithmetic Operations ("a-type")
+
+The following diagram shows the result of running
+```
+add r4
+hlt
+```
+on the processor:
+
+![](report_files/a_type_timing.png)
+
+## Architecture Diagram
+
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey

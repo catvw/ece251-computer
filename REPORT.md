@@ -343,6 +343,8 @@ labels easily.
 
 # End Results
 
+## Architecture Diagram
+
 ## Timing Diagrams
 You said to do separate diagrams for the single-cycle and pipelined
 implementations---but, due to the simplicity of the pipeline, I decided it made
@@ -353,14 +355,27 @@ different.
 
 The following diagram shows the result of running
 ```
-add r4
-hlt
+ADD R4
+HLT
 ```
 on the processor:
 
 ![](report_files/a_type_timing.png)
 
-## Architecture Diagram
+At 0 ms, the clock goes high for the first time, address zero is loaded from
+memory, and the first instruction (`NO`) does its (nonexistent) register
+write---showing the two pipeline stages, load and execute, both operating at
+the same time. The accumulator remains at its initial value of zero.
+
+At 20 ms, the pipeline is advanced, and the loaded instruction (`04`, or `ADD
+R4`) is copied into `exec_instr`, at which point the ALU (hardwired to respond
+to `exec_instr`) starts setting up its output.
+
+At 40 ms, `ADD R4` is executed, setting the accumulator to 7 (as `R4` contained
+7 initially), and the next instruction (`FA`, or `HLT`), is loaded from memory.
+
+At 60 ms, the pipeline is advanced again, and `HLT` is copied into
+`exec_instr`, in preparation for its execution at 80 ms.
 
 # Sources
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®

@@ -341,9 +341,234 @@ label into the accumulator, and aliases to a `SEL`/`SEH` pairing in machine
 code. This was included to allow loading static data, addresses, or function
 labels easily.
 
-# Sources
+# Exposition
+
+In case you *really* want to know what's going on inside.
+
+## Architecture Diagram
+
+The overall architecture is this:
+![](report_files/comparch.png)
+
+Briefly: there is exactly one memory module and one register file, shared for
+all operations. The fetch stage consists of the memory module, the `address`
+and `to_mem` registers, and the next instruction to be read from memory (not
+directly shown; intrinsic to the module). The execution stage consists of the
+instruction decoder, the register file, the accumulator, and the branch
+controller---it may seem like a lot, but it's all combinational logic and runs
+(roughly) in parallel. At least, as much as it can with the accumulator
+presenting a data hazard for every instruction.
+
+The instruction decoding section is mostly just a collection of logic lines and
+a multiplexer chain to determine the next value of the accumulator. Each
+accumulator-changing operation may be found hanging off its respective
+multiplexer.
+
+The branch control section determines the next program counter value, and
+broadcasts that information to the program counter itself as well as the
+instruction-fetch stage (and potentially the register file).
+
+Finally, the memory section deals solely with writing to memory or reading from
+memory, given the values of `address`, `to_mem`, and whether memory should be
+written.
+
+So that the diagram is not absolutely maddening, I'll describe the path of a
+few example instructions below.
+
+### Single-Register Arithmetic Operations ("a-type")
+
+The `is_alu` line is brought high, telling the multiplexer chain to use the
+output of the general-purpose ALU as the next accumulator value. If that
+particular ALU instruction uses an immediate, the instruction decoder lets the
+appropriate use-immediate multiplexer know.
+
+### Single-Immediate Operations ("i-type")
+
+`SEL` and `SEH` both use an immediate to affect the accumulator, but do not use
+the ALU to do so---thus, each one has its own dedicated multiplexer. In real
+hardware, this could certainly be optimized significantly, but the symbolic
+representation felt better expressed this way. Depending on the instruction,
+the appropriate bits of the accumulator are overwritten, as hinted at in the
+large box taking `A` and `E` as inputs.
+
+### Move Operations ("m-type")
+
+If moving from a register to the accumulator, the move multiplexer is enabled,
+setting the accumulator to the value of `exec_register`. Otherwise, the
+instruction decoder brings the register-write line high, and (since a move is
+not a register branch) the appropriate register will be overwritten.
+
+### Load-Store Operations ("h-type," for "heap-referencing")
+
+`is_load_store` will be brought high and the write-enable line for the memory
+module will be set appropriately. This has the dual effect of setting the next
+value of `address` to the one in the referenced register *and* telling the
+next-instruction multiplexer to insert a no-op on the next cycle to allow the
+operation to complete.
+
+### Near and Far Branching ("b-type" or "j-type," depending on persuasion)
+
+For a near branch, `should_near_branch` is brought high and `advance_by_one` is
+brought *low*, telling the program-counter adder to add the branch offset to
+the program counter instead of just adding one to it. Note that `address` gets
+the output of this adder, *not* the current value of the program counter, which
+was set up that way to ensure that reading the program counter from within a
+program gave the address of the *currently*-executing instruction.
+
+For a far branch, `should_near_branch` is set low, `advance_by_one` is set
+high, `is_register_branch` is set high, *and* the register-file write enable is
+set high, so that the value of the *subsequent* instruction is stored in the
+right register and the value of the *branched-to* instruction is next fetched
+from memory.
+
+### Division (because it's painful)
+
+Division works mostly like an ALU operation, with one exception: until the
+divide is complete, the `stall` line will remain high, feeding the accumulator
+back to itself until `div_complete` is set and the last multiplexer is enabled.
+
+## Timing Diagrams
+You said to do separate diagrams for the single-cycle and pipelined
+implementations---but, due to the simplicity of the pipeline, I decided it made
+more sense to just show the pipelined version. They're not enormously
+different.
+
+### Single-Register Arithmetic Operations ("a-type")
+
+The following diagram shows the result of running
+```
+ADD R4
+HLT
+```
+on the processor:
+
+![](report_files/a_type_timing.png)
+
+At 0 ms, the clock goes high for the first time, address zero is loaded from
+memory, and the first instruction (`NO`) does its (nonexistent) register
+write---showing the two pipeline stages, load and execute, both operating at
+the same time. The accumulator remains at its initial value of zero.
+
+At 20 ms, the pipeline is advanced, and the loaded instruction (`04`, or `ADD
+R4`) is copied into `exec_instr`, at which point the ALU (hardwired to respond
+to `exec_instr`) starts setting up its output.
+
+At 40 ms, `ADD R4` is executed, setting the accumulator to 7 (as `R4` contained
+7 initially), and the next instruction (`FA`, or `HLT`), is loaded from memory.
+
+At 60 ms, the pipeline is advanced again, and `HLT` is copied into
+`exec_instr`, in preparation for its execution at 80 ms.
+
+### Single-Immediate Operations ("i-type")
+
+The following diagram shows the result of running
+```
+SEH #8
+HLT
+```
+on the processor:
+
+![](report_files/i_type_timing.png)
+
+Like before, the instruction is loaded on the first pulse and executed on the
+next, but *this* time the ALU has nothing to do with things, as it's a `SEH`
+operation: the lower four bits of the instruction are simply copied to the
+upper four bits of the accumulator at 40 ms.
+
+### Move Operations ("m-type")
+
+If we run
+```
+MOV <R5
+HLT
+```
+we'll actually have to use the `exec_register` register, which is set on a
+falling edge to whatever register needs to be read for the next instruction.
+
+![](report_files/m_type_timing.png)
+
+The register file is written on the rising edge and read on the falling edge,
+based on the value of `next_exec` (which is set conditionally depending on what
+will be executed in the next cycle). At 20 ms, this means that `R7` is read
+into `exec_register` in preparation for the execution of `A5`/`MOV <R5` on the
+next rising edge---and the accumulator is duly set to the value of
+`exec_register` at 40 ms.
+
+### Load-Store Operations ("h-type")
+
+Running
+```
+LD [R1]
+HLT
+#99
+```
+will attempt to load 99 into the accumulator, and in doing so will require a
+pipeline stall.
+
+![](report_files/h_type_timing.png)
+
+The first instruction, `E1`/`LD [R1]` is loaded and copied into `exec_register`
+as usual, but `LD` instructions have to hijack the datapath to load a specified
+value from memory. Note that `next_exec` becomes `FF`/`NO` at 20 ms and `stall`
+goes high, which will cause a no-op to be executed---which is good, because
+otherwise the processor would attempt to execute the value that `LD` just
+fetched from memory. After the accumulator is safely set to the loaded value at
+60 ms, `stall` goes low, allowing the program counter to advance and the usual
+instruction-load stage to execute again at 80 ms.
+
+`ST` also requires a stall, but only for the fact that it hijacks `address` in
+order to do its write---otherwise, `address` would be used for instruction
+loading.
+
+### Near and Far Branching ("b-type," "j-type")
+
+The program
+```
+BZ end
+NO
+NO
+NO
+end: HLT
+```
+does not require a stall! It's just a little odd to look at.
+
+![](report_files/b_type_timing.png)
+
+Since the accumulator is fully set up on a falling edge, `should_near_branch`
+(whether we're doing a short-jump branch on the next cycle) can figure out
+whether a branch is about to occur pretty easily, as branching conditions
+depend *only* on the value of the accumulator. At 20 ms, the accumulator is
+zero, and thus it goes high, telling `next_pc` to add the value of the branch
+immediate (in this case, 3) to the current value of the program counter and use
+that as the next instruction load address. When the branch is executed at 40
+ms, `address` and `PC`/`register_file[7]` are set appropriately, and the next
+load cycle at 60 ms loads the final `HLT`.
+
+Far branching is simply another input to the `next_pc` multiplexer, taking the
+current value of the accumulator or one of the registers instead of the program
+counter and an offset; the actual timing is the same.
+
+### Division
+
+I won't go into detail, but here's what
+```
+MOV <R6
+DIV R2
+HLT
+```
+looks like:
+
+![](report_files/div_timing.png)
+
+Once the processor knows it's about to do a division, `stall` goes high, and
+stays high until the division is finished, preventing the program counter from
+advancing and loading no-ops into `exec_instr`. Once the divide finishes, the
+result is copied to the accumulator and processing resumes as usual.
+
+# Citations
 - *Computer Organization and Design: The Hardware/Software Interface, ARM®
   Edition*, David A. Patterson & John L. Hennesey
 - *Verilog by Example: A Concise Introduction for FPGA Design*, Blaine Readler
 - Intel 4004 datasheet:
   http://datasheets.chipdb.org/Intel/MCS-4/datashts/intel-4004.pdf
+- Schematic program: https://ludens.cl/Electron/kisscad/kisscad.html

@@ -17,6 +17,13 @@ module ctrl(
 		output mem_write
 	);
 
+	initial begin
+		$dumpfile("test.vcd");
+		$dumpvars(0, clock, exec_instr, exec_register, accumulator, ALU_result,
+			next_exec, stall, address, to_mem, from_mem, is_branch,
+			should_near_branch, `PC, next_pc);
+	end
+
 	// external variables
 	reg[7:0] address;
 	wire[7:0] from_mem;

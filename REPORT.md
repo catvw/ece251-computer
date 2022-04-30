@@ -572,3 +572,10 @@ result is copied to the accumulator and processing resumes as usual.
 - Intel 4004 datasheet:
   http://datasheets.chipdb.org/Intel/MCS-4/datashts/intel-4004.pdf
 - Schematic program: https://ludens.cl/Electron/kisscad/kisscad.html
+
+Copyright (C) C. Van West [`<charles@vanwestco.com>`]
+
+Distributed under [GPLv3] or later.
+
+[`<charles@vanwestco.com>`]: mailto:charles@vanwestco.com
+[GPLv3]: LICENSE.md

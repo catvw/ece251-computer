@@ -427,6 +427,49 @@ Division works mostly like an ALU operation, with one exception: until the
 divide is complete, the `stall` line will remain high, feeding the accumulator
 back to itself until `div_complete` is set and the last multiplexer is enabled.
 
+## Inside the Controllers
+
+### Instruction Decoder
+
+The instruction decoder simply takes the current instruction and decides which
+operation lines to switch on (with a *little tiny bit* of state inside). I'll
+reference the bits in the current instruction as `instr[B:A]` (how you would
+read it in Verilog, basically).  being the most-significant bit. Here's how
+each of the control lines behave:
+
+* `is_alu`: set if `instr[7:6]` are both zero, as that denotes an ALU
+  operation.
+* `ALU_op`: direct passthrough from `instr[5:3]`, as those directly specify
+  the ALU operation. No effect if `is_alu` is not set, due to the multiplexer.
+* `is_move`: set if `instr[7:4]` is precisely `1010`, as that is the `MOV`
+  prefix. In the actual controller, this is ANDed with `instr[3]`, as that bit
+  denotes the move *direction* and is set if moving a register into the
+  accumulator.
+* `is_mul`: set if `instr[7:3]` is `10000`.
+* `is_sel` and `is_seh`: set if `instr[7:4]` is `1100` or `1101`, respectively.
+* `is_adi`: set if `instr[7:4]` is `1001`.
+* `is_load_store`: set if `instr[7:4]` is `1110`; the direction (`instr[3]`)
+  specifies whether memory should be read or written and sets the write-enable
+  line ("Should write to memory?") accordingly.
+* `stall_for_div`: takes the value of the internal `stall_for_div` register.
+  The register itself is set if the internal `is_div` line goes high, and is
+  unset the cycle after `div_complete` goes high. The AND gate between
+  `stall_for_div` and `div_complete` allows the divide-result multiplexer to
+  acquire the division result one cycle earlier than it otherwise would be able
+  to while also simplifying the internal-state logic ("Just get it now! It's
+  *there*...").
+* "Use immediate?": set for `LSL`/`LSR` instructions to tell the
+  general-purpose ALU to use an immediate (unsurprisingly).
+* "Should write registers?": set if moving data outbound to registers, either
+  through `MOV` or due to register branching (see below).
+
+There are several more control lines inside the controller which break down the
+above into one or two stages; those may be seen in the implementation without
+much difficulty.
+
+Note: the actual processor-stall line is simply `stall_for_div` ORed with
+`is_load_store`, as `is_load_store` only causes a one-cycle stall.
+
 ## Timing Diagrams
 You said to do separate diagrams for the single-cycle and pipelined
 implementations---but, due to the simplicity of the pipeline, I decided it made

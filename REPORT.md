@@ -1,6 +1,8 @@
 # Report on the Design and Implementation of an 8-Bit Computer in Verilog
 Designed by Charles Van West throughout Spring '22.
 
+"Dear Rob Marano,"
+
 # Instruction Set Architecture
 The first task for this computer was the design of the ISA. Since I did not
 want overly complex control logic, I created something as close to a MISC

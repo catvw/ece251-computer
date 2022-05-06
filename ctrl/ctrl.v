@@ -49,9 +49,11 @@ module ctrl(
 
 	// external module hookups
 	wire[2:0] ALU_op = exec_instr[5:3];
+	wire is_shift;
+	wire[7:0] ALU_input = is_shift ? {5'b0, exec_instr[2:0]} : exec_register;
 	wire[7:0] ALU_result;
 	wire ALU_Cout;
-	alu general_alu(accumulator, exec_register, ALU_op, ALU_result, ALU_Cout);
+	alu general_alu(accumulator, ALU_input, ALU_op, ALU_result, ALU_Cout);
 
 	wire[7:0] product;
 	mult general_mult(accumulator, exec_register, product);
@@ -95,6 +97,10 @@ module ctrl(
 	              ~exec_instr[6] &
 	              ~exec_instr[5] &
 	              exec_instr[4];
+
+	assign is_shift = is_alu &
+	                  exec_instr[5] &
+	                  ~exec_instr[4];
 
 	// branching logic
 	wire should_near_branch = is_near_branch & (

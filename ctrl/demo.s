@@ -1,3 +1,4 @@
 	mov <r6
-	div r2
+	lsr #1
+	wr
 	hlt

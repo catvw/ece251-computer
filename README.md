@@ -2,7 +2,7 @@
 Pretty much what the repository description says. If you want more detail about
 how this thing came to be, check out `REPORT.md`.
 
-Copyright (C) C. Van West [`<charles@vanwestco.com>`]
+Copyright (C) 2022 C. R. Van West [`<charles@vanwestco.com>`]
 
 Distributed under [GPLv3] or later.
 

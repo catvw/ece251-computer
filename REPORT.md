@@ -472,6 +472,11 @@ much difficulty.
 Note: the actual processor-stall line is simply `stall_for_div` ORed with
 `is_load_store`, as `is_load_store` only causes a one-cycle stall.
 
+### Branch Controller
+
+The branch controller could be a subset of the instruction decoder, but it also
+takes into the account the value of the accumulator, hence the separate module.
+
 ## Timing Diagrams
 You said to do separate diagrams for the single-cycle and pipelined
 implementations---but, due to the simplicity of the pipeline, I decided it made

@@ -476,6 +476,24 @@ Note: the actual processor-stall line is simply `stall_for_div` ORed with
 
 The branch controller could be a subset of the instruction decoder, but it also
 takes into the account the value of the accumulator, hence the separate module.
+Here's what each of the lines mean:
+
+* `advance_by_one`: whether the program counter should advance by one in
+  addition to other things. *Un*set if `should_near_branch` is set or the
+  processor is stalled, but *set* if `is_register_branch` is set to get the
+  correct value for the program counter after the branch completes.
+* `should_near_branch`: whether a near branch should be executed; set if the
+  next instruction is a near-branch (`B`, `BZ`, or `BNN`) *and* that branch
+  should actually be taken, based on the value of the accumulator and which
+  specific branch it is. This line is ANDed with each bit of the sign-extended
+  immediate and added to the program counter to set the next-counter value.
+* `is_register_branch`: whether we're executing a branch to a "register" (`BR`
+  or `BA`). The program counter is set to the value of the register/the
+  accumulator and the *next*-counter value is read into the register specified
+  (check the multiplexer ahead of the register file).
+* "Reg, not acc?": set if we're executing `BR` and not `BA`; undefined (and
+  inconsequential) otherwise. Determines where the next-counter value comes
+  from.
 
 ## Timing Diagrams
 You said to do separate diagrams for the single-cycle and pipelined

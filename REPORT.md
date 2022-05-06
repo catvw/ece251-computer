@@ -495,6 +495,13 @@ Here's what each of the lines mean:
   inconsequential) otherwise. Determines where the next-counter value comes
   from.
 
+### ALU Operation Selection
+
+The ALU has a pretty simple operation select: it works out which class of
+operations it's about to use, and sets an internal multiplexer to the output of
+one of three modules. The bitwise logical operations are all encoded in one
+module, which makes the multiplexing simpler.
+
 ## Timing Diagrams
 You said to do separate diagrams for the single-cycle and pipelined
 implementations---but, due to the simplicity of the pipeline, I decided it made

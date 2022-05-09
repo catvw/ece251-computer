@@ -37,9 +37,6 @@ module ctrl(
 	reg[7:0] accumulator;
 	reg[7:0] register_file[7:0];
 
-	reg[7:0] fetch_address;
-	reg[7:0] fetch_instr;
-
 	reg[7:0] exec_instr;
 	reg[7:0] exec_register;
 
@@ -156,8 +153,6 @@ module ctrl(
 	                        acc_plus_immed, immed_adder_Cout);
 
 	initial begin
-		fetch_address <= 8'b0;
-		fetch_instr <= 8'hFF;
 		exec_instr <= 8'hFF;
 		stall_for_div <= 0;
 
